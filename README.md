@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SponsorFlow
 
-## Getting Started
+Find the brands that should already be sponsoring you.
 
-First, run the development server:
+Next.js 16 + Tailwind 4. No database, no auth: the intake profile and outreach statuses live in `localStorage`, and sponsor matches are generated client-side from `lib/sponsors.ts`.
+
+## Run
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Pages
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- `/` landing, sample results, intake form, pricing, FAQ
+- `/dashboard` sponsor intelligence dashboard (demo profile until the intake form is submitted)
+- `/beta` $29 founding beta signup + contact form
+- `/api/lead` logs form submissions to server logs
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deploy settings (optional)
 
-## Learn More
+| Variable | Purpose |
+| --- | --- |
+| `NEXT_PUBLIC_FORM_ENDPOINT` | Formspree/Basin URL for leads, so they arrive in your inbox. Defaults to `/api/lead` (server logs only). |
+| `NEXT_PUBLIC_CHECKOUT_URL` | Stripe Payment Link. When set, the beta form sends buyers to checkout after they submit. |
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deploy: push to GitHub, then import the repo on Vercel. No other config is needed.
