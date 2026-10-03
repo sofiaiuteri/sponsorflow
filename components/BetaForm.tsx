@@ -24,7 +24,17 @@ export function BetaForm() {
     const data = Object.fromEntries(new FormData(e.currentTarget));
     setState("sending");
     try {
-      await submitLead({ ...data, intent, profile });
+      // Flat fields read cleanly in Formspree's notification emails.
+      await submitLead({
+        _subject: `SponsorFlow ${intent === "list" ? "$29 beta order" : "question"}: ${data.publication || data.fullName}`,
+        ...data,
+        intent: intent === "list" ? "Wants $29 list" : "Question",
+        niche: profile.niche ?? "",
+        audience: profile.audience ?? "",
+        location: profile.location ?? "",
+        audienceSize: profile.audienceSize ?? "",
+        currentPrice: profile.price ?? "",
+      });
       if (intent === "list" && CHECKOUT_URL) {
         const url = new URL(CHECKOUT_URL);
         if (typeof data.email === "string") url.searchParams.set("prefilled_email", data.email);
