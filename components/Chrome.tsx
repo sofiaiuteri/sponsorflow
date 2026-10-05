@@ -36,9 +36,15 @@ export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-line">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 text-[13.5px] text-ink-muted sm:flex-row sm:items-center sm:justify-between sm:px-8">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
           <Logo />
-          <span className="hidden sm:inline">Sponsorship research for small media.</span>
+          <span>
+            Sponsorship research for small media, by{" "}
+            <a href="https://theexperienceexchange.vercel.app" target="_blank" rel="noopener noreferrer" className="underline decoration-line-strong underline-offset-4 hover:text-ink">
+              The Experience Exchange
+            </a>
+            .
+          </span>
         </div>
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           <Link href="/#start" className="hover:text-ink">Free preview</Link>
