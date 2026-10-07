@@ -9,6 +9,8 @@ export function LoginForm() {
     <form action={action} className="mx-auto mt-24 w-full max-w-sm rounded-2xl border border-line bg-card p-8">
       <h1 className="font-serif text-[30px] leading-tight">Admin</h1>
       <p className="mt-1 text-[14px] text-ink-soft">Sign in to manage sponsor lists.</p>
+      {/* Lets password managers save the login under a username; the site only checks the password. */}
+      <input type="text" name="username" autoComplete="username" defaultValue="admin" hidden readOnly />
       <label htmlFor="password" className="label mt-6">Password</label>
       <input id="password" name="password" type="password" required autoFocus autoComplete="current-password" className="field" />
       {state?.error && <p role="alert" className="mt-3 text-[13.5px] text-[#a33a2b]">{state.error}</p>}
