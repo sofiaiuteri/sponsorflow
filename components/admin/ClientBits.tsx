@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 
 export function CopyLink({ url }: { url: string }) {
   const [done, setDone] = useState(false);
@@ -43,4 +44,14 @@ export function AutoRefresh({ active }: { active: boolean }) {
     return () => clearInterval(id);
   }, [active, router]);
   return null;
+}
+
+/** Submit button that shows a pending label while its server action runs. */
+export function PendingButton({ label, pendingLabel, className, disabled }: { label: string; pendingLabel: string; className?: string; disabled?: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending || disabled} className={className}>
+      {pending ? pendingLabel : label}
+    </button>
+  );
 }

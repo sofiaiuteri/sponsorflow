@@ -87,6 +87,9 @@ export default async function EditListPage({ params }: PageProps<"/admin/lists/[
         <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
           <h1 className="font-serif text-[40px] leading-tight">{list.publication}</h1>
           <div className="flex flex-wrap gap-2">
+            <Link href={`/admin/lists/${list.id}/outreach`} className="rounded-full bg-accent px-3.5 py-1.5 text-[13px] font-medium text-paper hover:bg-ink">
+              Outreach →
+            </Link>
             <CopyLink url={url} />
             <Link href={`/l/${list.token}`} target="_blank" className="rounded-full bg-ink px-3.5 py-1.5 text-[13px] font-medium text-paper hover:bg-accent">
               Customer view ↗
