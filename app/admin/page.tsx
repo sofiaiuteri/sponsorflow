@@ -53,6 +53,10 @@ export default async function AdminPage() {
               <label className="label" htmlFor="summary">Short description</label>
               <input id="summary" name="summary" className="field" placeholder="Student environmental magazine at UVM, ~2,000 readers" />
             </div>
+            <div className="sm:col-span-2">
+              <label className="label" htmlFor="profile">Details for AI research</label>
+              <textarea id="profile" name="profile" rows={3} className="field resize-y" placeholder="Topics, audience, location, audience size, current sponsorship rate, brands to avoid" />
+            </div>
             <div>
               <label className="label" htmlFor="plan">Plan</label>
               <select id="plan" name="plan" className="field">

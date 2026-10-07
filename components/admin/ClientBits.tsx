@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export function CopyLink({ url }: { url: string }) {
   const [done, setDone] = useState(false);
@@ -31,4 +32,15 @@ export function ConfirmButton({ label, message, className }: { label: string; me
       {label}
     </button>
   );
+}
+
+/** Re-fetches the page every few seconds while background work (AI research) is running. */
+export function AutoRefresh({ active }: { active: boolean }) {
+  const router = useRouter();
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => router.refresh(), 5000);
+    return () => clearInterval(id);
+  }, [active, router]);
+  return null;
 }

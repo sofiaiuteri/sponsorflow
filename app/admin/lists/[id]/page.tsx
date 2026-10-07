@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { ConfirmButton, CopyLink } from "@/components/admin/ClientBits";
+import { AutoRefresh, ConfirmButton, CopyLink } from "@/components/admin/ClientBits";
 import { LoginForm } from "@/components/admin/LoginForm";
 import { isAdmin } from "@/lib/admin";
 import { FITS, STATUSES, getListById, getProspects, type Prospect } from "@/lib/db";
-import { deleteList, deleteProspect, importProspects, saveProspect, updateList } from "../../actions";
+import { deleteList, deleteProspect, importProspects, saveProspect, startResearch, updateList } from "../../actions";
 
 export const dynamic = "force-dynamic";
+// AI research runs in the background after the "Research with AI" action; give it up to 5 minutes.
+export const maxDuration = 300;
 export const metadata: Metadata = { title: "Edit list · SponsorFlow", robots: { index: false, follow: false } };
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://sponsorflow-self.vercel.app";
@@ -75,6 +77,7 @@ export default async function EditListPage({ params }: PageProps<"/admin/lists/[
   if (!list) notFound();
   const prospects = await getProspects(list.id);
   const url = `${SITE}/l/${list.token}`;
+  const busy = list.research_status === "queued" || list.research_status === "running";
 
   return (
     <>
@@ -92,7 +95,33 @@ export default async function EditListPage({ params }: PageProps<"/admin/lists/[
         </div>
         <p className="mt-1 break-all text-[12.5px] text-ink-muted">{url}</p>
 
-        <details className="mt-8 rounded-2xl border border-line bg-card p-6">
+        <AutoRefresh active={busy} />
+        <section className="mt-8 flex flex-col gap-4 rounded-2xl border border-line bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-[16px] font-medium">Research with AI</h2>
+            <p className="mt-1 max-w-xl text-[13.5px] text-ink-soft">
+              {busy
+                ? "Researching real sponsors on the web. This takes 2 to 5 minutes, and this page updates by itself."
+                : list.research_status === "error"
+                  ? `Last run failed: ${list.research_note}`
+                  : list.research_status === "done"
+                    ? `${list.research_note}. Run again to add more (brands already on the list are skipped).`
+                    : "Finds 20 real sponsor prospects using the details below, with why each fits, a pitch idea, an opening line and a published contact."}
+            </p>
+          </div>
+          <form action={startResearch.bind(null, list.id)}>
+            <button disabled={busy} className="btn-primary whitespace-nowrap">
+              {busy ? (
+                <>
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-paper/30 border-t-paper" />
+                  Researching…
+                </>
+              ) : prospects.length ? "Find more sponsors" : "Research 20 sponsors"}
+            </button>
+          </form>
+        </section>
+
+        <details className="mt-4 rounded-2xl border border-line bg-card p-6" open={!list.profile && !prospects.length}>
           <summary className="cursor-pointer text-[15px] font-medium">List details</summary>
           <form action={updateList.bind(null, list.id)} className="mt-5 grid gap-4 sm:grid-cols-2">
             <div>
@@ -104,8 +133,12 @@ export default async function EditListPage({ params }: PageProps<"/admin/lists/[
               <input name="customer_email" defaultValue={list.customer_email} className="field" />
             </div>
             <div className="sm:col-span-2">
-              <label className="label">Short description</label>
+              <label className="label">Short description (shown to the customer)</label>
               <input name="summary" defaultValue={list.summary} className="field" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="label">Details for AI research (topics, audience, location, size, rate, brands to avoid)</label>
+              <textarea name="profile" rows={4} defaultValue={list.profile} className="field resize-y" />
             </div>
             <div>
               <label className="label">Plan</label>

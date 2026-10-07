@@ -13,6 +13,10 @@ export type List = {
   summary: string;
   plan: string;
   customer_email: string;
+  profile: string;
+  research_status: "idle" | "queued" | "running" | "done" | "error";
+  research_note: string;
+  researched_at: string | null;
   created_at: string;
   updated_at: string;
 };

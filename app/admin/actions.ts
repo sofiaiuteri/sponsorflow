@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { endSession, passwordMatches, requireAdmin, startSession } from "@/lib/admin";
 import { FITS, STATUSES, sql } from "@/lib/db";
+import { researchList } from "@/lib/research";
 
 const text = (f: FormData, k: string, max = 4000) => String(f.get(k) ?? "").trim().slice(0, max);
 const fit = (v: string) => ((FITS as readonly string[]).includes(v) ? v : "Medium");
@@ -29,8 +31,8 @@ export async function createList(form: FormData) {
   const publication = text(form, "publication", 200);
   if (!publication) return;
   const [row] = await sql`
-    INSERT INTO lists (publication, summary, plan, customer_email)
-    VALUES (${publication}, ${text(form, "summary")}, ${text(form, "plan", 20) === "dfy" ? "dfy" : "list"}, ${text(form, "customer_email", 200)})
+    INSERT INTO lists (publication, summary, plan, customer_email, profile)
+    VALUES (${publication}, ${text(form, "summary")}, ${text(form, "plan", 20) === "dfy" ? "dfy" : "list"}, ${text(form, "customer_email", 200)}, ${text(form, "profile")})
     RETURNING id`;
   redirect(`/admin/lists/${row.id}`);
 }
@@ -39,8 +41,19 @@ export async function updateList(id: string, form: FormData) {
   await requireAdmin();
   await sql`
     UPDATE lists SET publication = ${text(form, "publication", 200)}, summary = ${text(form, "summary")},
-      plan = ${text(form, "plan", 20) === "dfy" ? "dfy" : "list"}, customer_email = ${text(form, "customer_email", 200)}, updated_at = now()
+      plan = ${text(form, "plan", 20) === "dfy" ? "dfy" : "list"}, customer_email = ${text(form, "customer_email", 200)}, profile = ${text(form, "profile")}, updated_at = now()
     WHERE id = ${uuid(id)}`;
+  revalidatePath(`/admin/lists/${id}`);
+}
+
+export async function startResearch(id: string) {
+  await requireAdmin();
+  const rows = await sql`
+    UPDATE lists SET research_status = 'queued', research_note = 'Starting…', updated_at = now()
+    WHERE id = ${uuid(id)} AND research_status NOT IN ('queued', 'running')
+    RETURNING id`;
+  // Runs after the response is sent, within this route's maxDuration (set on the page).
+  if (rows.length) after(() => researchList(id));
   revalidatePath(`/admin/lists/${id}`);
 }
 

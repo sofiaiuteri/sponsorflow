@@ -35,4 +35,9 @@ await sql`
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
 await sql`CREATE INDEX IF NOT EXISTS prospects_list_idx ON prospects(list_id, position)`;
+// AI research state (added 2026-10-07)
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS profile text NOT NULL DEFAULT ''`;
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS research_status text NOT NULL DEFAULT 'idle'`;
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS research_note text NOT NULL DEFAULT ''`;
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS researched_at timestamptz`;
 console.log("tables ready");
