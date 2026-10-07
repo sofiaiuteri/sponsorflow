@@ -107,4 +107,22 @@ await sql`
   )`;
 // Free samples (added 2026-10-07): which sales prospect a sample list was made for
 await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS sample_for uuid REFERENCES prospects(id) ON DELETE SET NULL`;
+// TEE team applications (added 2026-10-07)
+await sql`
+  CREATE TABLE IF NOT EXISTS tee_applications (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name text NOT NULL,
+    email text NOT NULL,
+    class_year text NOT NULL DEFAULT '',
+    major text NOT NULL DEFAULT '',
+    role text NOT NULL,
+    why text NOT NULL DEFAULT '',
+    samples text NOT NULL DEFAULT '',
+    hours text NOT NULL DEFAULT '',
+    instagram text NOT NULL DEFAULT '',
+    status text NOT NULL DEFAULT 'New',
+    notes text NOT NULL DEFAULT '',
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`;
 console.log("tables ready");
