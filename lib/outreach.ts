@@ -9,7 +9,7 @@ import { sql, type List, type Prospect } from "./db";
 
 export const SEND_DOMAIN = process.env.RESEND_EMAIL_DOMAIN || "sponsorflowhq.com";
 export const FROM_ADDRESS = `sofia@${SEND_DOMAIN}`;
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://sponsorflow-self.vercel.app";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://sponsorflowhq.com";
 const FORWARD_TO = process.env.REPLY_FORWARD_TO || "sofiaiuteri@icloud.com";
 /** Required by CAN-SPAM in every commercial email. Sending stays off until it's set. */
 const MAILING_ADDRESS = process.env.MAILING_ADDRESS || "";

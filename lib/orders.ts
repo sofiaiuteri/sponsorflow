@@ -3,7 +3,7 @@ import { sql, type List } from "./db";
 import { FROM_ADDRESS, draftCampaign } from "./outreach";
 
 // Automatic order flow: order form -> pending list -> Stripe payment -> research -> "your list is ready" email.
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://sponsorflow-self.vercel.app";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://sponsorflowhq.com";
 const OWNER_EMAIL = process.env.REPLY_FORWARD_TO || "sofiaiuteri@icloud.com";
 
 let client: Resend | null = null;

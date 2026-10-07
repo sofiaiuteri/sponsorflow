@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 export const metadata: Metadata = { title: "Edit list · SponsorFlow", robots: { index: false, follow: false } };
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://sponsorflow-self.vercel.app";
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://sponsorflowhq.com";
 
 function ProspectFields({ p }: { p?: Prospect }) {
   return (
