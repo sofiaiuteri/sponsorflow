@@ -169,10 +169,19 @@ Rules:
 
 Finish by listing every business with its contact and where to reach them.`;
 
-async function lookupContacts(batch: { brand: string; category: string; evidence: string }[], publication: string) {
+const RECRUIT_CONTACT_SYSTEM = `You find the right published contact for recruiting outreach. For each club, program or office listed, search the web and read its official pages to find the email address it publishes for general contact, for the club, or for the program coordinator.
+
+Rules:
+- Only use contact details the organization itself publishes (its official site, its page on the school's website, or its official social profile). Never guess or construct an email address, and do not use LinkedIn.
+- Prefer a club or program email, then a coordinator or advisor email published on the program page, then a contact form URL.
+- Contact: the role (for example "Club officers" or "Program coordinator"), or a named person only if the page publishes them as the contact.
+
+Finish by listing every organization with its contact and where to reach them.`;
+
+async function lookupContacts(batch: { brand: string; category: string; evidence: string }[], publication: string, recruiting = false) {
   const list = batch.map((b) => `- ${b.brand} (${b.category})${b.evidence ? `, related page: ${b.evidence}` : ""}`).join("\n");
   const messages: Anthropic.Beta.BetaMessageParam[] = [
-    { role: "user", content: `Find sponsorship contacts for these businesses, for outreach from ${publication}:\n${list}` },
+    { role: "user", content: recruiting ? `Find the published contact for each of these, for recruiting outreach from ${publication}:\n${list}` : `Find sponsorship contacts for these businesses, for outreach from ${publication}:\n${list}` },
   ];
   let final: Anthropic.Beta.BetaMessage | null = null;
   for (let turn = 0; turn < 3; turn++) {
@@ -180,7 +189,7 @@ async function lookupContacts(batch: { brand: string; category: string; evidence
       .stream({
         model: MODEL,
         max_tokens: 16000,
-        system: CONTACT_SYSTEM,
+        system: recruiting ? RECRUIT_CONTACT_SYSTEM : CONTACT_SYSTEM,
         output_config: { effort: "medium" },
         tools: [
           { type: "web_search_20260209", name: "web_search", max_uses: 10 },
@@ -232,7 +241,7 @@ export async function enrichContacts(listId: string) {
 
   const batches: (typeof todo)[] = [];
   for (let i = 0; i < todo.length; i += 5) batches.push(todo.slice(i, i + 5));
-  const results = await Promise.allSettled(batches.map((b) => lookupContacts(b, list.publication)));
+  const results = await Promise.allSettled(batches.map((b) => lookupContacts(b, list.publication, list.kind === "recruiting")));
 
   let found = 0;
   for (const r of results) {

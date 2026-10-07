@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { sql, type List } from "./db";
+import { enrichContacts } from "./research";
 
 // Recruiting agent: finds legitimate channels and people to recruit from, with published contacts,
 // and stores them as prospects so the existing outreach engine can email them.
@@ -111,6 +112,8 @@ export async function researchRecruiting(listId: string, { count = 20 }: { count
     await sql`
       UPDATE lists SET research_status = 'done', research_note = ${`Added ${fresh.length} recruiting channels and candidates`}, researched_at = now(), updated_at = now()
       WHERE id = ${listId}`;
+    // Fill in any missing contacts with a dedicated lookup pass.
+    if (fresh.some((c) => !c.reach.trim() || !/[@.]/.test(c.reach))) await enrichContacts(listId);
   } catch (err) {
     console.error("[recruit]", listId, err);
     const message = err instanceof Anthropic.APIError ? `AI service error (${err.status})` : err instanceof Error ? err.message : "Unknown error";
@@ -118,12 +121,3 @@ export async function researchRecruiting(listId: string, { count = 20 }: { count
   }
 }
 
-export const RECRUIT_DRAFT_SYSTEM = `You write short recruiting outreach emails for a small organization. Each email goes to one department, club, advisor, community or person and should read like a real person wrote it just for them.
-
-Rules:
-- 80 to 140 words in the body. Plain text, short paragraphs, no bullet points.
-- Open with the specific opening line provided (you may lightly polish it), then who the sender is and what the organization does, then the roles and why they might suit this audience (flexible, beginner-friendly, portfolio-building where true), then one clear, easy ask (for a department, club or advisor: "would you be open to sharing this with your students or members?"; for a person: "would you be interested in joining?").
-- Include the application link provided, once.
-- Warm and genuine, never pushy. No em dashes or en dashes anywhere.
-- End with the exact signature provided.
-- Subject lines: short and specific, for example "A creative opportunity for your students".`;

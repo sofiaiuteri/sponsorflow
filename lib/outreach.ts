@@ -4,7 +4,7 @@ import { createHmac } from "node:crypto";
 import { Resend } from "resend";
 import { z } from "zod";
 import { sql, type List, type Prospect } from "./db";
-import { RECRUIT_DRAFT_SYSTEM } from "./recruit";
+import { RECRUIT_DRAFT_SYSTEM } from "./prompts";
 
 // ---------- configuration ----------
 
