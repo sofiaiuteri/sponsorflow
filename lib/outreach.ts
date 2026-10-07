@@ -105,7 +105,7 @@ export async function getCampaignEmails(campaignId: string) {
 // ---------- AI drafting ----------
 
 const DraftSchema = z.object({
-  emails: z.array(z.object({ brand: z.string(), subject: z.string(), body: z.string() })),
+  emails: z.array(z.object({ n: z.number(), brand: z.string(), subject: z.string(), body: z.string() })),
 });
 
 const DRAFT_SYSTEM = `You write first-touch sponsorship emails for small independent publications. Each email goes to one business and should read like a real person wrote it just for them.
@@ -137,7 +137,7 @@ async function draftWithAI(list: List, campaign: Campaign, prospects: (Prospect 
     messages: [
       {
         role: "user",
-        content: `${list.kind === "recruiting" ? "Organization" : "Publication"}: ${list.publication}\nAbout the sender (use this for the "who we are" part): ${campaign.sender_intro}${list.kind === "recruiting" && list.website ? `\nApplication link (include once): ${list.website}` : ""}\n\nSignature (end every email with exactly this):\n${campaign.signature}\n\nWrite one email for each of these businesses:\n\n${items}`,
+        content: `${list.kind === "recruiting" ? "Organization" : "Publication"}: ${list.publication}\nAbout the sender (use this for the "who we are" part): ${campaign.sender_intro}${list.kind === "recruiting" && list.website ? `\nApplication link (include once): ${list.website}` : ""}\n\nSignature (end every email with exactly this):\n${campaign.signature}\n\nWrite one email for each of these, and set "n" to the item's number:\n\n${items}`,
       },
     ],
     betas: ["server-side-fallback-2026-07-01"],
@@ -165,8 +165,9 @@ export async function draftCampaign(listId: string) {
   for (let i = 0; i < targets.length; i += 10) {
     const batch = targets.slice(i, i + 10);
     const emails = await draftWithAI(list, campaign, batch);
-    for (const p of batch) {
-      const e = emails.find((x) => x.brand.trim().toLowerCase() === p.brand.trim().toLowerCase());
+    for (const [idx, p] of batch.entries()) {
+      // Match by item number (names can come back shortened), falling back to the name.
+      const e = emails.find((x) => x.n === idx + 1) ?? emails.find((x) => x.brand.trim().toLowerCase() === p.brand.trim().toLowerCase());
       if (!e) continue;
       await sql`
         INSERT INTO outreach_emails (campaign_id, prospect_id, step, to_email, subject, body)
