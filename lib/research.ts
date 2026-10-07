@@ -2,7 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { sql, type List } from "./db";
-import { onResearchComplete } from "./orders";
+import { onResearchComplete, onResearchFailed } from "./orders";
 
 // AI sponsor research: (1) Claude researches with live web search and writes notes,
 // (2) a second call turns those notes into validated structured prospects for the portal.
@@ -149,6 +149,7 @@ export async function researchList(listId: string, { count = 20 }: { count?: num
     const message = err instanceof Anthropic.APIError ? `AI service error (${err.status})` : err instanceof Error ? err.message : "Unknown error";
     console.error("[research]", listId, err);
     await sql`UPDATE lists SET research_status = 'error', research_note = ${message.slice(0, 300)}, updated_at = now() WHERE id = ${listId}`;
+    await onResearchFailed(listId, message);
   }
 }
 

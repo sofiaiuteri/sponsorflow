@@ -131,3 +131,17 @@ export async function notifyUnmatchedPayment(email: string, amountCents: number 
     `${email || "Someone"} paid through Stripe but didn't come through the order form, so research didn't start automatically.\n\nReply to them for their publication details, then create their list in admin: ${SITE}/admin`,
   );
 }
+
+/** Alert the owner when research fails for a paying customer, so the order never silently stalls. */
+export async function onResearchFailed(listId: string, reason: string) {
+  const [list] = (await sql`SELECT * FROM lists WHERE id = ${listId} AND order_status = 'paid'`) as List[];
+  if (!list) return;
+  const credits = /credit|billing|balance|\(400\)/i.test(reason);
+  await mail(
+    OWNER_EMAIL,
+    `Action needed: research failed for ${list.publication}`,
+    `Research for a paid order (${list.publication}, ${list.customer_email}) didn't finish.\n\nReason: ${reason}${
+      credits ? "\n\nThis usually means the Anthropic API credits ran out. Add credits at https://console.anthropic.com (Settings > Billing), then click \"Research\" again:" : "\n\nTry again here:"
+    } ${SITE}/admin/lists/${list.id}`,
+  );
+}
