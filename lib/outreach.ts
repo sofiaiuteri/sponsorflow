@@ -304,6 +304,15 @@ export async function sendAllActive() {
 
 // ---------- inbound replies and bounces ----------
 
+/** Out-of-office and other automatic replies shouldn't count as a reply or stop follow-ups. */
+export function isAutoReply(subject: string, headers: Record<string, string> | null | undefined, text: string) {
+  const h = Object.fromEntries(Object.entries(headers ?? {}).map(([k, v]) => [k.toLowerCase(), String(v).toLowerCase()]));
+  if (h["auto-submitted"] && h["auto-submitted"] !== "no") return true;
+  if (h["x-autoreply"] || h["x-autorespond"] || h["x-auto-response-suppress"] || h["precedence"] === "auto_reply") return true;
+  if (/^(automatic reply|auto(matic)?[- ]?reply|auto:|out of (the )?office|away from|autoreply)/i.test(subject.trim())) return true;
+  return /\b(out of (the )?office|away from (the|my) office|on (leave|vacation|fmla)|limited access to email)\b/i.test(text.slice(0, 400));
+}
+
 const OPT_OUT = /\b(unsubscribe|no thanks|no thank you|remove me|stop emailing|not interested)\b/i;
 
 const stripHtml = (html: string) =>
@@ -332,6 +341,13 @@ export async function handleInboundReply(emailId: string, fromHeader: string, su
     VALUES (${emailId}, ${email?.message_id ?? ""}, ${from}, ${fromName === from ? "" : fromName}, ${subject}, ${text.slice(0, 20000)},
       ${match?.prospect_id ?? null}, ${match?.list_id ?? null})
     ON CONFLICT (resend_email_id) DO NOTHING`;
+
+  const auto = isAutoReply(subject, email?.headers, text);
+  if (auto) {
+    // Keep it in the inbox (marked done) for reference, but don't change any statuses or stop follow-ups.
+    await sql`UPDATE inbound_replies SET handled = true, subject = ${`[Auto-reply] ${subject}`} WHERE resend_email_id = ${emailId}`;
+    return;
+  }
 
   if (match) {
     const optOut = OPT_OUT.test(replyPreview(text)) || /^unsubscribe/i.test(subject);
