@@ -82,6 +82,13 @@ export async function markPaid(orderId: string, email: string, amountCents: numb
 
 /** Called when research (including contact lookup) finishes. Emails paid customers their link once. */
 export async function onResearchComplete(listId: string) {
+  // Free samples: tell the owner it's ready to send from the inbox.
+  const [sample] = (await sql`
+    UPDATE lists SET notified_at = now() WHERE id = ${listId} AND plan = 'sample' AND notified_at IS NULL RETURNING *`) as List[];
+  if (sample) {
+    await mail(OWNER_EMAIL, `Free sample ready: ${sample.publication}`, `The 5-sponsor sample for ${sample.publication} is ready: ${portalUrl(sample)}\n\nSend it from your inbox (a reply is pre-written for you): ${SITE}/admin/inbox`);
+    return;
+  }
   const [list] = (await sql`
     UPDATE lists SET notified_at = now()
     WHERE id = ${listId} AND order_status = 'paid' AND notified_at IS NULL

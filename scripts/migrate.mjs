@@ -89,4 +89,22 @@ await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS notified_at timestamptz`;
 // Delivery tracking (added 2026-10-07)
 await sql`ALTER TABLE outreach_emails ADD COLUMN IF NOT EXISTS delivered_at timestamptz`;
 await sql`CREATE INDEX IF NOT EXISTS outreach_resend_idx ON outreach_emails(resend_id)`;
+// Replies inbox (added 2026-10-07)
+await sql`
+  CREATE TABLE IF NOT EXISTS inbound_replies (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    resend_email_id text UNIQUE NOT NULL,
+    message_id text NOT NULL DEFAULT '',
+    from_email text NOT NULL,
+    from_name text NOT NULL DEFAULT '',
+    subject text NOT NULL DEFAULT '',
+    body text NOT NULL DEFAULT '',
+    prospect_id uuid REFERENCES prospects(id) ON DELETE SET NULL,
+    list_id uuid REFERENCES lists(id) ON DELETE SET NULL,
+    handled boolean NOT NULL DEFAULT false,
+    answered_at timestamptz,
+    received_at timestamptz NOT NULL DEFAULT now()
+  )`;
+// Free samples (added 2026-10-07): which sales prospect a sample list was made for
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS sample_for uuid REFERENCES prospects(id) ON DELETE SET NULL`;
 console.log("tables ready");

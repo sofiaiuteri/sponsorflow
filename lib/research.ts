@@ -24,9 +24,9 @@ const ProspectSchema = z.object({
 });
 const ResultSchema = z.object({ prospects: z.array(ProspectSchema) });
 
-const RESEARCH_SYSTEM = `You research sponsorship prospects for small independent media: student publications, newsletters and podcasts. Your list is delivered to the publication as a paid product, so every entry must be real, current and genuinely useful.
+const researchSystem = (count: number) => `You research sponsorship prospects for small independent media: student publications, newsletters and podcasts. Your list is delivered to the publication as a paid product, so every entry must be real, current and genuinely useful.
 
-Find exactly 20 sponsor prospects for the publication described by the user. Use web search to verify each one.
+Find exactly ${count} sponsor prospects for the publication described by the user. Use web search to verify each one.
 
 What makes a good list:
 - A mix of roughly half local or regional businesses and organizations near the publication, and half regional or national brands with a believable reason to reach this exact audience (student or ambassador programs, past sponsorship of similar media or events, products the audience already uses).
@@ -44,7 +44,7 @@ For each prospect, record:
 - Where to reach them: if you happen to see a published email, contact form or partnerships page while researching, record it. Otherwise write "TBD". A second pass looks up contacts, so don't spend searches on them now.
 - Evidence: a URL that shows why they fit.
 
-If you cannot verify a detail, say so in that field rather than inventing it. Finish with all 20 prospects written out clearly.`;
+If you cannot verify a detail, say so in that field rather than inventing it. Finish with all ${count} prospects written out clearly.`;
 
 function profileText(list: List, exclude: string[]) {
   return [
@@ -57,7 +57,7 @@ function profileText(list: List, exclude: string[]) {
     .join("\n");
 }
 
-async function runWebResearch(prompt: string) {
+async function runWebResearch(prompt: string, count: number) {
   const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: prompt }];
   let final: Anthropic.Beta.BetaMessage | null = null;
 
@@ -67,9 +67,9 @@ async function runWebResearch(prompt: string) {
       .stream({
         model: MODEL,
         max_tokens: 32000,
-        system: RESEARCH_SYSTEM,
+        system: researchSystem(count),
         output_config: { effort: "medium" },
-        tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 12 }],
+        tools: [{ type: "web_search_20260209", name: "web_search", max_uses: count <= 5 ? 6 : 12 }],
         messages,
         ...FALLBACK,
       })
@@ -121,19 +121,19 @@ async function queueContactLookup(listId: string) {
   if (!res.ok) throw new Error(`Couldn't start contact lookup (${res.status})`);
 }
 
-export async function researchList(listId: string) {
+export async function researchList(listId: string, { count = 20 }: { count?: number } = {}) {
   const [list] = (await sql`SELECT * FROM lists WHERE id = ${listId}`) as List[];
   if (!list) return;
   await sql`UPDATE lists SET research_status = 'running', research_note = 'Researching sponsors…', updated_at = now() WHERE id = ${listId}`;
 
   try {
     const existing = (await sql`SELECT brand FROM prospects WHERE list_id = ${listId}`) as { brand: string }[];
-    const notes = await runWebResearch(profileText(list, existing.map((e) => e.brand)));
+    const notes = await runWebResearch(profileText(list, existing.map((e) => e.brand)), count);
     const prospects = await structure(notes);
 
     const seen = new Set(existing.map((e) => e.brand.toLowerCase()));
     const order = { High: 0, Medium: 1, Low: 2 };
-    const fresh = prospects.filter((p) => p.brand && !seen.has(p.brand.toLowerCase())).sort((a, b) => order[a.fit] - order[b.fit]);
+    const fresh = prospects.slice(0, count).filter((p) => p.brand && !seen.has(p.brand.toLowerCase())).sort((a, b) => order[a.fit] - order[b.fit]);
 
     const [{ start }] = (await sql`SELECT coalesce(max(position), -1) + 1 AS start FROM prospects WHERE list_id = ${listId}`) as { start: number }[];
     for (const [i, p] of fresh.entries()) {

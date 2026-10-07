@@ -303,19 +303,35 @@ export async function sendAllActive() {
 
 const OPT_OUT = /\b(unsubscribe|no thanks|no thank you|remove me|stop emailing|not interested)\b/i;
 
+const stripHtml = (html: string) =>
+  html.replace(/<(style|script)[\s\S]*?<\/\1>/gi, "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n\n").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\n{3,}/g, "\n\n").trim();
+
+/** The new part of a reply, without the quoted original email underneath. */
+export function replyPreview(text: string) {
+  return (text.split(/\n>|\nOn .{5,200} wrote:|\n-{2,} ?Original Message|\nFrom: .+\nSent:/)[0] ?? text).trim();
+}
+
 export async function handleInboundReply(emailId: string, fromHeader: string, subject: string) {
   const from = emailFrom(fromHeader);
+  const fromName = fromHeader.replace(/<[^>]+>/, "").replace(/"/g, "").trim();
   const { data: email } = await resend().emails.receiving.get(emailId);
-  const text = email?.text ?? "";
+  const text = email?.text || stripHtml(email?.html ?? "");
 
   const [match] = (await sql`
-    SELECT e.id, e.prospect_id, l.customer_email, l.publication FROM outreach_emails e
+    SELECT e.id, e.prospect_id, p.list_id, l.customer_email, l.publication FROM outreach_emails e
     JOIN prospects p ON p.id = e.prospect_id JOIN lists l ON l.id = p.list_id
     WHERE lower(e.to_email) = ${from} AND e.status IN ('sent', 'replied')
-    ORDER BY e.sent_at DESC NULLS LAST LIMIT 1`) as { id: string; prospect_id: string; customer_email: string; publication: string }[];
+    ORDER BY e.sent_at DESC NULLS LAST LIMIT 1`) as { id: string; prospect_id: string; list_id: string; customer_email: string; publication: string }[];
+
+  // Keep every reply in the admin inbox so nothing gets lost in a spam folder.
+  await sql`
+    INSERT INTO inbound_replies (resend_email_id, message_id, from_email, from_name, subject, body, prospect_id, list_id)
+    VALUES (${emailId}, ${email?.message_id ?? ""}, ${from}, ${fromName === from ? "" : fromName}, ${subject}, ${text.slice(0, 20000)},
+      ${match?.prospect_id ?? null}, ${match?.list_id ?? null})
+    ON CONFLICT (resend_email_id) DO NOTHING`;
 
   if (match) {
-    const optOut = OPT_OUT.test(text.split(/\n>|\nOn .+ wrote:/)[0] ?? "") || /^unsubscribe/i.test(subject);
+    const optOut = OPT_OUT.test(replyPreview(text)) || /^unsubscribe/i.test(subject);
     await sql`UPDATE outreach_emails SET status = 'replied' WHERE prospect_id = ${match.prospect_id} AND status = 'sent'`;
     await sql`UPDATE outreach_emails SET status = 'skipped' WHERE prospect_id = ${match.prospect_id} AND status IN ('approved', 'draft')`;
     await sql`
@@ -326,9 +342,29 @@ export async function handleInboundReply(emailId: string, fromHeader: string, su
     if (optOut) await suppress(from, "replied: opt-out");
   }
 
-  // Forward everything to a real inbox so no reply is ever missed.
+  // Also forward to a real inbox.
   const to = match?.customer_email || FORWARD_TO;
   await resend().emails.receiving.forward({ emailId, to, from: `SponsorFlow replies <replies@${SEND_DOMAIN}>` });
+}
+
+/** Answer a reply from the admin inbox. Sent from the same address, threaded with the original. */
+export async function answerReply(replyId: string, body: string) {
+  const [r] = (await sql`SELECT * FROM inbound_replies WHERE id = ${replyId}`) as {
+    id: string; from_email: string; subject: string; body: string; message_id: string;
+  }[];
+  if (!r) return { ok: false, note: "Reply not found" };
+  const subject = /^re:/i.test(r.subject) ? r.subject : `Re: ${r.subject}`;
+  const quoted = replyPreview(r.body).split("\n").map((l) => `> ${l}`).join("\n");
+  const { error } = await resend().emails.send({
+    from: `Sofia Iuteri <${FROM_ADDRESS}>`,
+    to: [r.from_email],
+    subject,
+    text: `${body.trim()}\n\n${quoted}`,
+    headers: r.message_id ? { "In-Reply-To": r.message_id, References: r.message_id } : undefined,
+  });
+  if (error) return { ok: false, note: error.message };
+  await sql`UPDATE inbound_replies SET answered_at = now(), handled = true WHERE id = ${replyId}`;
+  return { ok: true, note: `Sent to ${r.from_email}` };
 }
 
 export async function handleBounce(fromHeaderTo: string[], reason: string) {
