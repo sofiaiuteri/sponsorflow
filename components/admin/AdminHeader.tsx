@@ -15,12 +15,12 @@ export async function AdminHeader() {
           <Link href="/admin/dashboard" className="text-[13.5px] text-ink-soft hover:text-ink">Dashboard</Link>
           <Link href="/admin/inbox" className="inline-flex items-center gap-1.5 text-[13.5px] text-ink-soft hover:text-ink">
             Inbox
-            {unread > 0 && <span className="rounded-full bg-accent px-1.5 py-px text-[11px] font-medium text-paper">{unread}</span>}
+            {unread > 0 && <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1 font-sans text-[11px] font-semibold leading-none text-paper">{unread}</span>}
           </Link>
           <Link href="/admin" className="text-[13.5px] text-ink-soft hover:text-ink">Lists</Link>
           <Link href="/admin/team" className="inline-flex items-center gap-1.5 text-[13.5px] text-ink-soft hover:text-ink">
             Team
-            {applicants > 0 && <span className="rounded-full bg-accent px-1.5 py-px text-[11px] font-medium text-paper">{applicants}</span>}
+            {applicants > 0 && <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1 font-sans text-[11px] font-semibold leading-none text-paper">{applicants}</span>}
           </Link>
         </div>
         <form action={logout}>
