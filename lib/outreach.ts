@@ -185,14 +185,14 @@ function footer(email: string, publication: string, address = MAILING_ADDRESS) {
  * Sends a copy of a draft to the owner's own inbox so they can see exactly what brands receive.
  * Allowed before a mailing address exists (it isn't sent to a brand); uses a visible placeholder.
  */
-export async function sendTestCopy(emailId: string) {
+export async function sendTestCopy(emailId: string, toOverride = "") {
   if (!process.env.RESEND_API_KEY) return { ok: false, note: "Email service isn't set up" };
   const [e] = (await sql`
     SELECT e.*, c.from_name, l.publication, l.customer_email FROM outreach_emails e
     JOIN campaigns c ON c.id = e.campaign_id JOIN lists l ON l.id = c.list_id
     WHERE e.id = ${emailId}`) as (OutreachEmail & { from_name: string; publication: string; customer_email: string })[];
   if (!e) return { ok: false, note: "Email not found" };
-  const to = e.customer_email || FORWARD_TO;
+  const to = emailFrom(toOverride) || e.customer_email || FORWARD_TO;
   const { error } = await resend().emails.send({
     from: `${e.from_name} <${FROM_ADDRESS}>`,
     to: [to],

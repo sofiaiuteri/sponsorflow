@@ -69,9 +69,9 @@ export async function sendNow(listId: string, campaignId: string) {
   revalidatePath(path(listId));
 }
 
-export async function sendTest(listId: string, emailId: string) {
+export async function sendTest(listId: string, emailId: string, form?: FormData) {
   await requireAdmin();
-  const result = await sendTestCopy(uuid(emailId));
+  const result = await sendTestCopy(uuid(emailId), String(form?.get("test_to") ?? ""));
   if (!result.ok) throw new Error(result.note);
   revalidatePath(path(listId));
 }

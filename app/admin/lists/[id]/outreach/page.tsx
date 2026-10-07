@@ -182,8 +182,16 @@ export default async function OutreachPage({ params }: PageProps<"/admin/lists/[
                           <pre className="mt-2 whitespace-pre-wrap font-sans text-[14px] leading-relaxed text-ink-soft">{e.body}</pre>
                         </>
                       )}
-                      <form action={sendTest.bind(null, list.id, e.id)} className="mt-4">
-                        <PendingButton label={`Send me a test copy (to ${list.customer_email || "my inbox"})`} pendingLabel="Sending test…" className="text-[13px] font-medium text-accent hover:underline" />
+                      <form action={sendTest.bind(null, list.id, e.id)} className="mt-4 flex flex-wrap items-center gap-2">
+                        <input
+                          name="test_to"
+                          type="email"
+                          placeholder={list.customer_email || "your email"}
+                          aria-label="Send a test copy to"
+                          className="field !w-64 !py-1.5 text-[13px]"
+                        />
+                        <PendingButton label="Send test copy" pendingLabel="Sending test…" className="rounded-full border border-line-strong px-3.5 py-1.5 text-[13px] font-medium hover:border-ink" />
+                        <span className="text-[12px] text-ink-muted">Leave blank to send it to {list.customer_email || "yourself"}.</span>
                       </form>
                       {editable && (
                         <form action={setEmailStatus.bind(null, list.id, e.id, "skipped")} className="mt-3">
