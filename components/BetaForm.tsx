@@ -3,15 +3,20 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Arrow } from "@/components/Chrome";
-import { CHECKOUT_URL, submitLead } from "@/lib/config";
+import { CHECKOUT_URL, CHECKOUT_URL_DFY, submitLead } from "@/lib/config";
 import type { Profile } from "@/lib/sponsors";
 import { PROFILE_KEY, useStoredString } from "@/lib/storage";
 
-type Intent = "list" | "question";
+type Intent = "list" | "dfy" | "question";
 
-export function BetaForm() {
+const PLAN_LABEL: Record<Intent, string> = { list: "Sponsor List ($29)", dfy: "Done-for-you ($49 + 10%)", question: "Question" };
+
+export function BetaForm({ initialPlan = "list" }: { initialPlan?: Intent }) {
   const [rawProfile] = useStoredString(PROFILE_KEY);
-  const [intent, setIntent] = useState<Intent>("list");
+  const [intent, setIntent] = useState<Intent>(initialPlan);
+  const ordering = intent !== "question";
+  const checkout = intent === "dfy" ? CHECKOUT_URL_DFY : intent === "list" ? CHECKOUT_URL : "";
+  const price = intent === "dfy" ? "$49" : "$29";
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
 
   let profile: Partial<Profile> = {};
@@ -26,17 +31,17 @@ export function BetaForm() {
     try {
       // Flat fields read cleanly in Formspree's notification emails.
       await submitLead({
-        _subject: `SponsorFlow ${intent === "list" ? "$29 beta order" : "question"}: ${data.publication || data.fullName}`,
+        _subject: `SponsorFlow ${ordering ? PLAN_LABEL[intent] + " order" : "question"}: ${data.publication || data.fullName}`,
         ...data,
-        intent: intent === "list" ? "Wants $29 list" : "Question",
+        intent: PLAN_LABEL[intent],
         niche: profile.niche ?? "",
         audience: profile.audience ?? "",
         location: profile.location ?? "",
         audienceSize: profile.audienceSize ?? "",
         currentPrice: profile.price ?? "",
       });
-      if (intent === "list" && CHECKOUT_URL) {
-        const url = new URL(CHECKOUT_URL);
+      if (checkout) {
+        const url = new URL(checkout);
         if (typeof data.email === "string") url.searchParams.set("prefilled_email", data.email);
         window.location.href = url.toString();
         return;
@@ -56,12 +61,14 @@ export function BetaForm() {
           </svg>
         </div>
         <h2 className="mt-5 font-serif text-[32px] leading-tight">
-          {intent === "list" ? "You're on the founding list." : "Message received."}
+          {ordering ? "You're on the founding list." : "Message received."}
         </h2>
         <p className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed text-ink-soft">
-          {intent === "list"
-            ? "We'll reply within 1 business day with payment details and next steps. Your list arrives within 3 business days of payment."
-            : "We'll reply within 1 business day."}
+          {intent === "dfy"
+            ? "We'll reply within 1 business day with payment details. Then we research your 20 brands, send you the pitches to approve, and start reaching out."
+            : intent === "list"
+              ? "We'll reply within 1 business day with payment details and next steps. Your list arrives within 3 business days of payment."
+              : "We'll reply within 1 business day."}
         </p>
         <Link href="/dashboard" className="btn-ghost mt-8">
           Back to my dashboard
@@ -74,16 +81,17 @@ export function BetaForm() {
     <form key={rawProfile ?? "empty"} id="contact" onSubmit={onSubmit} className="scroll-mt-24 rounded-2xl border border-line bg-card p-5 shadow-[0_12px_40px_-24px_rgba(26,25,21,0.18)] sm:p-8">
       <fieldset>
         <legend className="label">I&apos;d like to…</legend>
-        <div className="grid grid-cols-2 gap-2 rounded-xl bg-paper p-1">
+        <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-paper p-1">
           {(
             [
-              ["list", "Get my 20 matches"],
+              ["list", "Sponsor List · $29"],
+              ["dfy", "Done-for-you · $49"],
               ["question", "Ask a question"],
             ] as [Intent, string][]
           ).map(([v, label]) => (
             <label
               key={v}
-              className={`cursor-pointer rounded-lg px-3 py-2.5 text-center text-[14px] font-medium transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${
+              className={`cursor-pointer rounded-lg px-2 py-2.5 text-center text-[13px] font-medium sm:text-[14px] transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-accent ${
                 intent === v ? "bg-card text-ink shadow-sm" : "text-ink-muted hover:text-ink"
               }`}
             >
@@ -105,7 +113,7 @@ export function BetaForm() {
         </div>
         <div>
           <label htmlFor="publication" className="label">Publication</label>
-          <input id="publication" name="publication" required={intent === "list"} defaultValue={profile.name} className="field" placeholder="The Quad Review" />
+          <input id="publication" name="publication" required={ordering} defaultValue={profile.name} className="field" placeholder="The Quad Review" />
         </div>
         <div>
           <label htmlFor="website" className="label">Website <span className="font-normal text-ink-muted">· optional</span></label>
@@ -113,8 +121,8 @@ export function BetaForm() {
         </div>
         <div className="sm:col-span-2">
           <label htmlFor="message" className="label">
-            {intent === "list" ? "Anything we should know?" : "Your question"}
-            {intent === "list" && <span className="font-normal text-ink-muted"> · optional</span>}
+            {ordering ? "Anything we should know?" : "Your question"}
+            {ordering && <span className="font-normal text-ink-muted"> · optional</span>}
           </label>
           <textarea
             id="message"
@@ -122,14 +130,14 @@ export function BetaForm() {
             rows={4}
             required={intent === "question"}
             className="field resize-none leading-relaxed"
-            placeholder={intent === "list" ? "Brands you've worked with, brands to avoid, sponsorship formats you offer…" : "How can we help?"}
+            placeholder={ordering ? "Brands you've worked with, brands to avoid, sponsorship formats you offer…" : "How can we help?"}
           />
         </div>
       </div>
 
-      {profile.name && intent === "list" && (
+      {profile.name && ordering && (
         <p className="mt-5 rounded-lg bg-paper px-3.5 py-2.5 text-[13px] text-ink-soft">
-          We&apos;ll include the details you entered for <span className="font-medium text-ink">{profile.name}</span> — no need to repeat them.
+          We&apos;ll include the details you entered for <span className="font-medium text-ink">{profile.name}</span>, so no need to repeat them.
         </p>
       )}
 
@@ -140,17 +148,18 @@ export function BetaForm() {
       )}
 
       <button type="submit" disabled={state === "sending"} className="btn-primary mt-7 w-full">
-        {state === "sending" ? "Sending…" : intent === "list" ? (
+        {state === "sending" ? "Sending…" : ordering ? (
           <>
-            {CHECKOUT_URL ? "Continue to payment — $29" : "Reserve my founding spot — $29"} <Arrow />
+            {checkout ? `Continue to payment · ${price}` : `Reserve my spot · ${price}`} <Arrow />
           </>
         ) : (
           "Send message"
         )}
       </button>
-      {intent === "list" && (
+      {ordering && (
         <p className="mt-3 text-center text-[12.5px] text-ink-muted">
-          {CHECKOUT_URL ? "Secure checkout. Refund if the list isn't useful." : "No payment yet — we'll confirm by email first."}
+          {checkout ? "Secure checkout. Refund if the list isn't useful." : "No payment yet. We'll confirm by email first."}
+          {intent === "dfy" && " The 10% only applies to sponsorships we help you land."}
         </p>
       )}
     </form>

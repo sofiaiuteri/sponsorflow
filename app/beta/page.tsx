@@ -4,16 +4,19 @@ import { SiteFooter, SiteHeader } from "@/components/Chrome";
 import { TRUST_NOTE } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "Founding Beta — SponsorFlow",
+  title: "Get started · SponsorFlow",
 };
 
 const POINTS = [
   ["20 researched sponsor prospects", "Chosen for your audience, not pulled from a generic database."],
-  ["Why, angle, opener — and who to contact", "Why each brand fits, a recommended pitch angle, a personalized opener, and a suggested contact or person where available."],
-  ["Delivered within 3 business days", "As a shareable sheet. Refund if the list isn't useful."],
+  ["Why, angle, opener, and who to contact", "Why each brand fits, a recommended pitch angle, a personalized opener, and a suggested contact or person where available."],
+  ["Delivered within 3 business days", "As an interactive list you can work from. Refund if it isn't useful."],
+  ["Want us to pitch for you?", "Choose Done-for-you ($49 + 10% of deals we help land) and we'll send the pitches and introduce you to brands that say yes."],
 ];
 
-export default function BetaPage() {
+export default async function BetaPage({ searchParams }: PageProps<"/beta">) {
+  const { plan } = await searchParams;
+  const initialPlan = plan === "dfy" ? "dfy" : plan === "question" ? "question" : "list";
   return (
     <>
       <SiteHeader minimal />
@@ -35,7 +38,7 @@ export default function BetaPage() {
             </dl>
             <p className="mt-8 text-[12.5px] leading-relaxed text-ink-muted">{TRUST_NOTE}</p>
           </div>
-          <BetaForm />
+          <BetaForm initialPlan={initialPlan} />
         </div>
       </main>
       <SiteFooter />

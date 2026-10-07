@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Arrow, SiteFooter, SiteHeader } from "@/components/Chrome";
 import { IntakeForm } from "@/components/IntakeForm";
 import { PreviewList } from "@/components/PreviewList";
-import { CTA_LABEL, TRUST_NOTE } from "@/lib/config";
+import { TRUST_NOTE } from "@/lib/config";
 
 const AUDIENCES = ["Newsletters", "Student publications", "Podcasts", "Independent creators", "Local media", "Niche magazines"];
 
@@ -33,10 +33,19 @@ const INCLUDED = [
   "Delivered within 3 business days",
 ];
 
+const DFY_INCLUDED = [
+  "Everything in the Sponsor List",
+  "We send all 20 pitches for you",
+  "A friendly follow-up to every brand",
+  "Warm introductions to brands that say yes",
+  "You approve the pitches before anything goes out",
+  "10% only on sponsorships we help you land",
+];
+
 const FAQ = [
   {
     q: "I only have a few thousand readers. Is this for me?",
-    a: "Yes — that's exactly who it's for. Plenty of brands prefer small, engaged, specific audiences over big general ones. We include local and niche sponsors that suit early-stage publications.",
+    a: "Yes, that's exactly who it's for. Plenty of brands prefer small, engaged, specific audiences over big general ones. We include local and niche sponsors that suit early-stage publications.",
   },
   {
     q: "What's the difference between the free preview and the $29 list?",
@@ -44,7 +53,15 @@ const FAQ = [
   },
   {
     q: "Have these brands agreed to sponsor me?",
-    a: "No. SponsorFlow identifies high-fit sponsorship prospects — companies worth pitching — not brands that have already agreed to sponsor your publication. Brand names in samples are examples only; no affiliation is implied.",
+    a: "No. SponsorFlow identifies high-fit sponsorship prospects (companies worth pitching), not brands that have already agreed to sponsor your publication. Brand names in samples are examples only; no affiliation is implied.",
+  },
+  {
+    q: "What does Done-for-you include?",
+    a: "Everything in the Sponsor List, and then we do the outreach. We send a personal pitch to each of your 20 brands from our SponsorFlow address, clearly on behalf of your publication, follow up once, and introduce you directly to every brand that's interested. You see and approve the pitches before anything is sent.",
+  },
+  {
+    q: "How does the 10% work?",
+    a: "You only pay it if a brand we introduced signs a sponsorship with you within 12 months of our introduction. It's 10% of what that brand pays you, invoiced after you've been paid. No deal, no fee.",
   },
   {
     q: "How long does it take?",
@@ -168,41 +185,75 @@ export default function Home() {
 
         {/* Pricing */}
         <section id="pricing" className="scroll-mt-20 bg-ink text-paper">
-          <div className="mx-auto grid max-w-6xl gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-2 lg:gap-20">
-            <div>
-              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-paper/50">Founding Beta</p>
-              <h2 className="mt-3 font-serif text-[40px] leading-[1.05] sm:text-[56px]">
-                20 sponsor matches, researched for you.
-              </h2>
-              <p className="mt-5 max-w-md text-[16px] leading-relaxed text-paper/70">
-                A research-backed sponsor list prepared for your publication. Founding Beta customers keep their $29 price for future lists during the beta.
+          <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
+            <div className="max-w-2xl">
+              <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-paper/50">Founding Beta pricing</p>
+              <h2 className="mt-3 font-serif text-[40px] leading-[1.05] sm:text-[56px]">Pick how much you want us to do.</h2>
+              <p className="mt-5 max-w-lg text-[16px] leading-relaxed text-paper/70">
+                Get the research and pitch it yourself, or let us pitch for you and introduce you to the brands that say yes. Founding Beta customers keep these prices for future lists during the beta.
               </p>
-              <div className="mt-10 flex items-baseline gap-3">
-                <span className="font-serif text-[72px] leading-none">$29</span>
-                <span className="flex flex-col gap-1.5">
-                  <span className="w-fit rounded-full border border-paper/25 px-2.5 py-0.5 text-[12px] font-medium text-paper/90">Founding Beta</span>
-                  <span className="text-[14px] text-paper/60">one-time · per list</span>
-                </span>
-              </div>
             </div>
-            <div className="flex flex-col justify-between gap-10">
-              <ul className="divide-y divide-paper/10 border-y border-paper/10">
-                {INCLUDED.map((item) => (
-                  <li key={item} className="flex items-center gap-3 py-3.5 text-[15.5px]">
-                    <svg viewBox="0 0 16 16" className="h-4 w-4 shrink-0 text-[#9cc5ad]" aria-hidden>
-                      <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <div>
-                <Link href="/beta" className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-paper px-6 py-4 text-[15.5px] font-medium text-ink transition hover:bg-highlight">
-                  {CTA_LABEL} <Arrow />
-                </Link>
-                <p className="mt-3 text-center text-[12.5px] text-paper/50">Refund if the list isn&apos;t useful. Replies within 1 business day.</p>
-              </div>
+
+            <div className="mt-14 grid gap-6 lg:grid-cols-2">
+              {[
+                {
+                  name: "Sponsor List",
+                  price: "$29",
+                  note: "one-time",
+                  blurb: "We research your sponsors. You send the pitches.",
+                  items: INCLUDED,
+                  cta: "Get my sponsor list",
+                  href: "/beta?plan=list",
+                  featured: false,
+                },
+                {
+                  name: "Done-for-you",
+                  price: "$49",
+                  note: "+ 10% of deals we help land",
+                  blurb: "We research your sponsors, pitch them for you, and connect you with the ones who say yes.",
+                  items: DFY_INCLUDED,
+                  cta: "Get Done-for-you",
+                  href: "/beta?plan=dfy",
+                  featured: true,
+                },
+              ].map((plan) => (
+                <div
+                  key={plan.name}
+                  className={`flex flex-col rounded-2xl border p-7 sm:p-9 ${plan.featured ? "border-paper/40 bg-paper/[0.06]" : "border-paper/15"}`}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <h3 className="text-[19px] font-medium">{plan.name}</h3>
+                    {plan.featured && (
+                      <span className="rounded-full bg-highlight px-2.5 py-0.5 text-[12px] font-medium text-ink">New</span>
+                    )}
+                  </div>
+                  <p className="mt-2 text-[14.5px] text-paper/65">{plan.blurb}</p>
+                  <div className="mt-7 flex items-baseline gap-3">
+                    <span className="font-serif text-[60px] leading-none">{plan.price}</span>
+                    <span className="text-[14px] text-paper/60">{plan.note}</span>
+                  </div>
+                  <ul className="mt-7 flex-1 divide-y divide-paper/10 border-y border-paper/10">
+                    {plan.items.map((item) => (
+                      <li key={item} className="flex items-center gap-3 py-3 text-[15px]">
+                        <svg viewBox="0 0 16 16" className="h-4 w-4 shrink-0 text-[#9cc5ad]" aria-hidden>
+                          <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href={plan.href}
+                    className={`mt-8 inline-flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-[15.5px] font-medium transition ${
+                      plan.featured ? "bg-paper text-ink hover:bg-highlight" : "border border-paper/30 text-paper hover:bg-paper/10"
+                    }`}
+                  >
+                    {plan.cta} <Arrow />
+                  </Link>
+                </div>
+              ))}
             </div>
+            <p className="mt-6 text-center text-[12.5px] text-paper/50">Refund if the list isn&apos;t useful. Replies within 1 business day.</p>
           </div>
         </section>
 

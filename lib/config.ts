@@ -7,6 +7,7 @@
  *                           When unset, leads go to /api/lead and appear in server logs.
  */
 export const CHECKOUT_URL = process.env.NEXT_PUBLIC_CHECKOUT_URL || "";
+export const CHECKOUT_URL_DFY = process.env.NEXT_PUBLIC_CHECKOUT_URL_DFY || "";
 export const FORM_ENDPOINT = process.env.NEXT_PUBLIC_FORM_ENDPOINT || "/api/lead";
 
 export const CTA_LABEL = "Get 20 sponsor matches — $29";
