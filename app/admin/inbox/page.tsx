@@ -39,6 +39,9 @@ function suggested(r: Row) {
   if (r.campaign_pub === "SponsorFlow") {
     return `Hi ${first},\n\nThanks so much for getting back to me! I'm putting together your 5 free sponsor matches for ${r.brand} now and will send them over shortly.\n\nBest,\nSofia`;
   }
+  if (r.campaign_pub === "The Experience Exchange") {
+    return `Hi ${first},\n\nThanks so much for getting back to me! I'd love to work together.\n\nHere's our media kit with our packages and prices: https://theexperienceexchange.vercel.app/advertise\nMost local businesses start with our Local Partner package ($150 a semester: a half-page print ad, an Instagram feature and your logo on our site), and our Issue Sponsor package ($300) is the biggest spotlight we offer.\n\nWould you have 15 minutes this week to chat? I'm happy to stop by in person too.\n\nBest,\nSofia Iuteri\nFounder & Editor-in-Chief, The Experience Exchange`;
+  }
   return `Hi ${first},\n\nThanks so much for getting back to me!\n\n\n\nBest,\nSofia`;
 }
 
