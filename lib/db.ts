@@ -18,6 +18,7 @@ export type List = {
   research_note: string;
   researched_at: string | null;
   order_status: "manual" | "pending" | "paid";
+  kind: "sponsors" | "recruiting";
   contact_name: string;
   website: string;
   amount_cents: number | null;

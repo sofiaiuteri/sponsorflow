@@ -125,4 +125,6 @@ await sql`
     created_at timestamptz NOT NULL DEFAULT now(),
     updated_at timestamptz NOT NULL DEFAULT now()
   )`;
+// List kinds (added 2026-10-07): 'sponsors' (SponsorFlow) or 'recruiting' (recruiting agent)
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'sponsors'`;
 console.log("tables ready");

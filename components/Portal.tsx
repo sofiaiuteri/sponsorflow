@@ -195,7 +195,7 @@ export function Portal({ token, list, initial }: { token: string; list: List; in
 
   return (
     <div className="mx-auto max-w-6xl px-5 pb-24 pt-10 sm:px-8 sm:pt-14">
-      <p className="eyebrow">Sponsor list</p>
+      <p className="eyebrow">{list.kind === "recruiting" ? "Recruiting list" : "Sponsor list"}</p>
       <h1 className="mt-2 font-serif text-[38px] leading-[1.05] sm:text-[52px]">{list.publication}</h1>
       {list.summary && <p className="mt-3 max-w-2xl text-[15px] text-ink-soft">{list.summary}</p>}
 

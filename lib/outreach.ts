@@ -4,6 +4,7 @@ import { createHmac } from "node:crypto";
 import { Resend } from "resend";
 import { z } from "zod";
 import { sql, type List, type Prospect } from "./db";
+import { RECRUIT_DRAFT_SYSTEM } from "./recruit";
 
 // ---------- configuration ----------
 
@@ -123,18 +124,20 @@ async function draftWithAI(list: List, campaign: Campaign, prospects: (Prospect 
   const items = prospects
     .map(
       (p, i) =>
-        `${i + 1}. Brand: ${p.brand}\n   Category: ${p.category}\n   Why it fits: ${p.why}\n   Sponsorship idea: ${p.angle}\n   Opening line: ${p.opener}\n   Contact: ${p.contact}`,
+        list.kind === "recruiting"
+          ? `${i + 1}. Brand: ${p.brand}\n   Type: ${p.category}\n   Why it's a good source: ${p.why}\n   Approach and roles: ${p.angle}\n   Opening line: ${p.opener}\n   Contact: ${p.contact}`
+          : `${i + 1}. Brand: ${p.brand}\n   Category: ${p.category}\n   Why it fits: ${p.why}\n   Sponsorship idea: ${p.angle}\n   Opening line: ${p.opener}\n   Contact: ${p.contact}`,
     )
     .join("\n\n");
   const response = await client.beta.messages.parse({
     model: "claude-opus-5-5",
     max_tokens: 32000,
-    system: DRAFT_SYSTEM,
+    system: list.kind === "recruiting" ? RECRUIT_DRAFT_SYSTEM : DRAFT_SYSTEM,
     output_config: { effort: "medium", format: betaZodOutputFormat(DraftSchema) },
     messages: [
       {
         role: "user",
-        content: `Publication: ${list.publication}\nAbout the sender (use this for the "who we are" part): ${campaign.sender_intro}\n\nSignature (end every email with exactly this):\n${campaign.signature}\n\nWrite one email for each of these businesses:\n\n${items}`,
+        content: `${list.kind === "recruiting" ? "Organization" : "Publication"}: ${list.publication}\nAbout the sender (use this for the "who we are" part): ${campaign.sender_intro}${list.kind === "recruiting" && list.website ? `\nApplication link (include once): ${list.website}` : ""}\n\nSignature (end every email with exactly this):\n${campaign.signature}\n\nWrite one email for each of these businesses:\n\n${items}`,
       },
     ],
     betas: ["server-side-fallback-2026-07-01"],

@@ -78,6 +78,7 @@ export default async function EditListPage({ params }: PageProps<"/admin/lists/[
   const prospects = await getProspects(list.id);
   const url = `${SITE}/l/${list.token}`;
   const busy = list.research_status === "queued" || list.research_status === "running";
+  const recruiting = list.kind === "recruiting";
 
   return (
     <>
@@ -101,7 +102,7 @@ export default async function EditListPage({ params }: PageProps<"/admin/lists/[
         <AutoRefresh active={busy} />
         <section className="mt-8 flex flex-col gap-4 rounded-2xl border border-line bg-card p-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-[16px] font-medium">Research with AI</h2>
+            <h2 className="text-[16px] font-medium">{recruiting ? "Find recruits with AI" : "Research with AI"}</h2>
             <p className="mt-1 max-w-xl text-[13.5px] text-ink-soft">
               {busy
                 ? "Researching real sponsors on the web. This takes 2 to 5 minutes, and this page updates by itself."
@@ -109,7 +110,9 @@ export default async function EditListPage({ params }: PageProps<"/admin/lists/[
                   ? `Last run failed: ${list.research_note}`
                   : list.research_status === "done"
                     ? `${list.research_note}. Run again to add more (brands already on the list are skipped).`
-                    : "Finds 20 real sponsor prospects using the details below, with why each fits, a pitch idea, an opening line and a published contact."}
+                    : recruiting
+                      ? "Finds about 20 departments, clubs, advisors, job boards and public-portfolio candidates to recruit from, each with a published contact and an opening line."
+                      : "Finds 20 real sponsor prospects using the details below, with why each fits, a pitch idea, an opening line and a published contact."}
             </p>
           </div>
           <form action={startResearch.bind(null, list.id)}>
@@ -119,7 +122,7 @@ export default async function EditListPage({ params }: PageProps<"/admin/lists/[
                   <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-paper/30 border-t-paper" />
                   Researching…
                 </>
-              ) : prospects.length ? "Find more sponsors" : "Research 20 sponsors"}
+              ) : recruiting ? (prospects.length ? "Find more recruits" : "Find 20 recruiting channels") : prospects.length ? "Find more sponsors" : "Research 20 sponsors"}
             </button>
           </form>
         </section>
@@ -140,8 +143,12 @@ export default async function EditListPage({ params }: PageProps<"/admin/lists/[
               <input name="summary" defaultValue={list.summary} className="field" />
             </div>
             <div className="sm:col-span-2">
-              <label className="label">Details for AI research (topics, audience, location, size, rate, brands to avoid)</label>
+              <label className="label">{recruiting ? "Recruiting needs (roles, location, schools, high school and/or college, remote OK?)" : "Details for AI research (topics, audience, location, size, rate, brands to avoid)"}</label>
               <textarea name="profile" rows={4} defaultValue={list.profile} className="field resize-y" />
+            </div>
+            <div>
+              <label className="label">{recruiting ? "Application link (used in emails)" : "Website"}</label>
+              <input name="website" defaultValue={list.website} className="field" />
             </div>
             <div>
               <label className="label">Plan</label>

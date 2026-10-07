@@ -28,7 +28,7 @@ export default async function AdminPage() {
                 <div className="min-w-0 flex-1">
                   <Link href={`/admin/lists/${l.id}`} className="text-[16px] font-medium hover:underline">{l.publication}</Link>
                   <div className="text-[12.5px] text-ink-muted">
-                    {l.plan === "dfy" ? "Done-for-you" : "Sponsor List"} · {l.total} prospects · {l.worked} worked · {l.customer_email || "no email"}
+                    {l.kind === "recruiting" ? "Recruiting" : l.plan === "dfy" ? "Done-for-you" : l.plan === "sample" ? "Free sample" : "Sponsor List"} · {l.total} {l.kind === "recruiting" ? "channels" : "prospects"} · {l.worked} worked · {l.customer_email || "no email"}
                   </div>
                 </div>
                 <Link href={`/l/${l.token}`} target="_blank" className="text-[13.5px] text-accent hover:underline">Customer view ↗</Link>
@@ -56,6 +56,17 @@ export default async function AdminPage() {
             <div className="sm:col-span-2">
               <label className="label" htmlFor="profile">Details for AI research</label>
               <textarea id="profile" name="profile" rows={3} className="field resize-y" placeholder="Topics, audience, location, audience size, current sponsorship rate, brands to avoid" />
+            </div>
+            <div>
+              <label className="label" htmlFor="kind">Type</label>
+              <select id="kind" name="kind" className="field">
+                <option value="sponsors">Sponsor list</option>
+                <option value="recruiting">Recruiting</option>
+              </select>
+            </div>
+            <div>
+              <label className="label" htmlFor="website">Website or application link</label>
+              <input id="website" name="website" className="field" placeholder="https://…" />
             </div>
             <div>
               <label className="label" htmlFor="plan">Plan</label>
