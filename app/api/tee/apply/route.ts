@@ -23,6 +23,7 @@ export async function POST(request: Request) {
   const app = {
     name: str(b.name, 120),
     email: str(b.email, 200).toLowerCase(),
+    school: str(b.school, 160),
     class_year: str(b.class_year, 40),
     major: str(b.major, 120),
     role: (TEE_ROLES as readonly string[]).includes(str(b.role, 80)) ? str(b.role, 80) : "Not sure yet",

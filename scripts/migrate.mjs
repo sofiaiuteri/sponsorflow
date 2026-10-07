@@ -127,4 +127,6 @@ await sql`
   )`;
 // List kinds (added 2026-10-07): 'sponsors' (SponsorFlow) or 'recruiting' (recruiting agent)
 await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'sponsors'`;
+// School field for national correspondents (added 2026-10-07)
+await sql`ALTER TABLE tee_applications ADD COLUMN IF NOT EXISTS school text NOT NULL DEFAULT ''`;
 console.log("tables ready");

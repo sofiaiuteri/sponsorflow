@@ -77,7 +77,7 @@ export default async function TeamPage({ searchParams }: PageProps<"/admin/team"
                 <span className="ml-auto text-[12.5px] text-ink-muted">{new Date(a.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
               </div>
               <p className="mt-1 text-[13.5px] text-ink-soft">
-                {[a.email, a.class_year && `Class of ${a.class_year}`, a.major, a.hours && `${a.hours} hrs/week`, a.instagram].filter(Boolean).join(" · ")}
+                {[a.email, a.school, a.class_year && `Class of ${a.class_year}`, a.major, a.hours && `${a.hours} hrs/week`, a.instagram].filter(Boolean).join(" · ")}
               </p>
               {a.why && <p className="mt-3 whitespace-pre-wrap text-[15px] leading-relaxed">{a.why}</p>}
               {a.samples && (

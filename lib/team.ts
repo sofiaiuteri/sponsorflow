@@ -4,6 +4,7 @@ import { FROM_ADDRESS } from "./outreach";
 
 // The Experience Exchange team applications (form lives on the TEE site, data lives here).
 export const TEE_ROLES = [
+  "Campus Correspondent",
   "Graphic & Layout Designer",
   "Social Media & Content Creator",
   "Photographer & Videographer",
@@ -19,14 +20,14 @@ const TEE_EMAIL = "siuteri@mail.wlu.edu";
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "https://sponsorflowhq.com";
 
 export type Application = {
-  id: string; name: string; email: string; class_year: string; major: string; role: string; why: string;
+  id: string; name: string; email: string; school: string; class_year: string; major: string; role: string; why: string;
   samples: string; hours: string; instagram: string; status: string; notes: string; created_at: string;
 };
 
 export async function saveApplication(a: Omit<Application, "id" | "status" | "notes" | "created_at">) {
   const [row] = (await sql`
-    INSERT INTO tee_applications (name, email, class_year, major, role, why, samples, hours, instagram)
-    VALUES (${a.name}, ${a.email}, ${a.class_year}, ${a.major}, ${a.role}, ${a.why}, ${a.samples}, ${a.hours}, ${a.instagram})
+    INSERT INTO tee_applications (name, email, school, class_year, major, role, why, samples, hours, instagram)
+    VALUES (${a.name}, ${a.email}, ${a.school}, ${a.class_year}, ${a.major}, ${a.role}, ${a.why}, ${a.samples}, ${a.hours}, ${a.instagram})
     RETURNING id`) as { id: string }[];
 
   if (process.env.RESEND_API_KEY) {
@@ -43,8 +44,8 @@ export async function saveApplication(a: Omit<Application, "id" | "status" | "no
       from: `TEE applications <${FROM_ADDRESS}>`,
       to: [process.env.REPLY_FORWARD_TO || "sofiaiuteri@icloud.com"],
       replyTo: a.email,
-      subject: `New TEE applicant: ${a.name} (${a.role})`,
-      text: `${a.name} (${a.email}) applied for ${a.role}.\n\nYear: ${a.class_year || "-"} · Major: ${a.major || "-"} · Hours/week: ${a.hours || "-"}\nInstagram: ${a.instagram || "-"}\nSamples: ${a.samples || "-"}\n\nWhy they want to join:\n${a.why || "-"}\n\nReview all applicants: ${SITE}/admin/team`,
+      subject: `New TEE applicant: ${a.name} (${a.role}${a.school ? `, ${a.school}` : ""})`,
+      text: `${a.name} (${a.email}) applied for ${a.role}.\n\nSchool: ${a.school || "-"} · Year: ${a.class_year || "-"} · Major: ${a.major || "-"} · Hours/week: ${a.hours || "-"}\nInstagram: ${a.instagram || "-"}\nSamples: ${a.samples || "-"}\n\nWhy they want to join:\n${a.why || "-"}\n\nReview all applicants: ${SITE}/admin/team`,
     });
   }
   return row.id;
