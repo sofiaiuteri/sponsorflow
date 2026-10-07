@@ -7,7 +7,7 @@ import { LoginForm } from "@/components/admin/LoginForm";
 import { isAdmin } from "@/lib/admin";
 import { getListById, sql } from "@/lib/db";
 import { FROM_ADDRESS, emailFrom, getCampaignEmails, getOrCreateCampaign, sendingReadiness } from "@/lib/outreach";
-import { approveAll, saveCampaign, saveEmail, sendNow, setCampaignStatus, setEmailStatus, writeDrafts } from "../../../outreach-actions";
+import { approveAll, saveCampaign, saveEmail, sendNow, sendTest, setCampaignStatus, setEmailStatus, writeDrafts } from "../../../outreach-actions";
 
 export const dynamic = "force-dynamic";
 // Drafting 20 emails with AI and sending a batch both run inside these actions.
@@ -182,6 +182,9 @@ export default async function OutreachPage({ params }: PageProps<"/admin/lists/[
                           <pre className="mt-2 whitespace-pre-wrap font-sans text-[14px] leading-relaxed text-ink-soft">{e.body}</pre>
                         </>
                       )}
+                      <form action={sendTest.bind(null, list.id, e.id)} className="mt-4">
+                        <PendingButton label={`Send me a test copy (to ${list.customer_email || "my inbox"})`} pendingLabel="Sending test…" className="text-[13px] font-medium text-accent hover:underline" />
+                      </form>
                       {editable && (
                         <form action={setEmailStatus.bind(null, list.id, e.id, "skipped")} className="mt-3">
                           <button className="text-[13px] text-ink-muted hover:text-ink hover:underline">Don&apos;t send this one</button>

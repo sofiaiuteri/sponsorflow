@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/admin";
 import { getListById, sql } from "@/lib/db";
-import { draftCampaign, getOrCreateCampaign, sendCampaignBatch } from "@/lib/outreach";
+import { draftCampaign, getOrCreateCampaign, sendCampaignBatch, sendTestCopy } from "@/lib/outreach";
 
 const uuid = (v: string) => {
   if (!/^[0-9a-f-]{36}$/i.test(v)) throw new Error("Bad id");
@@ -66,5 +66,12 @@ export async function setCampaignStatus(listId: string, campaignId: string, stat
 export async function sendNow(listId: string, campaignId: string) {
   await requireAdmin();
   await sendCampaignBatch(uuid(campaignId));
+  revalidatePath(path(listId));
+}
+
+export async function sendTest(listId: string, emailId: string) {
+  await requireAdmin();
+  const result = await sendTestCopy(uuid(emailId));
+  if (!result.ok) throw new Error(result.note);
   revalidatePath(path(listId));
 }

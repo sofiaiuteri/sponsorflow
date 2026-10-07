@@ -177,8 +177,32 @@ export async function draftCampaign(listId: string) {
 
 // ---------- sending ----------
 
-function footer(email: string, publication: string) {
-  return `\n\n\n--\nIf you'd rather not hear from us, just reply "no thanks" or unsubscribe here: ${unsubscribeUrl(email)}\n${publication} via SponsorFlow, ${MAILING_ADDRESS}`;
+function footer(email: string, publication: string, address = MAILING_ADDRESS) {
+  return `\n\n\n--\nIf you'd rather not hear from us, just reply "no thanks" or unsubscribe here: ${unsubscribeUrl(email)}\n${publication} via SponsorFlow, ${address}`;
+}
+
+/**
+ * Sends a copy of a draft to the owner's own inbox so they can see exactly what brands receive.
+ * Allowed before a mailing address exists (it isn't sent to a brand); uses a visible placeholder.
+ */
+export async function sendTestCopy(emailId: string) {
+  if (!process.env.RESEND_API_KEY) return { ok: false, note: "Email service isn't set up" };
+  const [e] = (await sql`
+    SELECT e.*, c.from_name, l.publication, l.customer_email FROM outreach_emails e
+    JOIN campaigns c ON c.id = e.campaign_id JOIN lists l ON l.id = c.list_id
+    WHERE e.id = ${emailId}`) as (OutreachEmail & { from_name: string; publication: string; customer_email: string })[];
+  if (!e) return { ok: false, note: "Email not found" };
+  const to = e.customer_email || FORWARD_TO;
+  const { error } = await resend().emails.send({
+    from: `${e.from_name} <${FROM_ADDRESS}>`,
+    to: [to],
+    subject: `[TEST] ${e.subject}`,
+    text:
+      `(Test copy. This would go to ${e.to_email}. Reply to it to see how replies get forwarded back to you.)\n\n` +
+      e.body +
+      footer(e.to_email, e.publication, MAILING_ADDRESS || "[your P.O. box address will appear here]"),
+  });
+  return error ? { ok: false, note: error.message } : { ok: true, note: `Test sent to ${to}` };
 }
 
 function followUpBody(signature: string) {
