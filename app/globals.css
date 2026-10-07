@@ -33,23 +33,25 @@ body {
   background: var(--color-highlight);
 }
 
-/* Shared form control look */
-.field {
-  @apply w-full rounded-lg border border-line bg-card px-3.5 py-2.5 text-[15px] text-ink placeholder:text-ink-muted/70 outline-none transition focus:border-ink focus:ring-4 focus:ring-ink/5;
-}
+/* Shared component styles. In a layer so utility classes (e.g. sm:w-auto) can override them. */
+@layer components {
+  .field {
+    @apply w-full rounded-lg border border-line bg-card px-3.5 py-2.5 text-[15px] text-ink placeholder:text-ink-muted/70 outline-none transition focus:border-ink focus:ring-4 focus:ring-ink/5;
+  }
 
-.label {
-  @apply mb-1.5 block text-[13px] font-medium text-ink-soft;
-}
+  .label {
+    @apply mb-1.5 block text-[13px] font-medium text-ink-soft;
+  }
 
-.btn-primary {
-  @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-[15px] font-medium text-paper transition hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60;
-}
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3 text-[15px] font-medium text-paper transition hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60;
+  }
 
-.btn-ghost {
-  @apply inline-flex items-center justify-center gap-2 rounded-full border border-line-strong px-5 py-3 text-[15px] font-medium text-ink transition hover:border-ink hover:bg-card;
-}
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-line-strong px-5 py-3 text-[15px] font-medium text-ink transition hover:border-ink hover:bg-card;
+  }
 
-.eyebrow {
-  @apply font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted;
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-[0.14em] text-ink-muted;
+  }
 }

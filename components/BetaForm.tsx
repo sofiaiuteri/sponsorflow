@@ -78,7 +78,7 @@ export function BetaForm({ initialPlan = "list" }: { initialPlan?: Intent }) {
   }
 
   return (
-    <form key={rawProfile ?? "empty"} id="contact" onSubmit={onSubmit} className="scroll-mt-24 rounded-2xl border border-line bg-card p-5 shadow-[0_12px_40px_-24px_rgba(26,25,21,0.18)] sm:p-8">
+    <form key={rawProfile ?? "empty"} id="contact" onSubmit={onSubmit} className="self-start scroll-mt-24 rounded-2xl border border-line bg-card p-5 shadow-[0_12px_40px_-24px_rgba(26,25,21,0.18)] sm:p-8">
       <fieldset>
         <legend className="label">I&apos;d like to…</legend>
         <div className="grid grid-cols-3 gap-1.5 rounded-xl bg-paper p-1">
