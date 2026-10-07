@@ -178,7 +178,7 @@ export async function draftCampaign(listId: string) {
 // ---------- sending ----------
 
 function footer(email: string, publication: string, address = MAILING_ADDRESS) {
-  return `\n\n\n--\nIf you'd rather not hear from us, just reply "no thanks" or unsubscribe here: ${unsubscribeUrl(email)}\n${publication} via SponsorFlow, ${address}`;
+  return `\n\n\n--\nIf you'd rather not hear from us, just reply "no thanks" or unsubscribe here: ${unsubscribeUrl(email)}\n${publication === "SponsorFlow" ? "SponsorFlow" : `${publication} via SponsorFlow`}, ${address}`;
 }
 
 /**
