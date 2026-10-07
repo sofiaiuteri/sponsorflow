@@ -131,7 +131,7 @@ async function draftWithAI(list: List, campaign: Campaign, prospects: (Prospect 
     .join("\n\n");
   const response = await client.beta.messages.parse({
     model: "claude-opus-5-5",
-    max_tokens: 32000,
+    max_tokens: 16000,
     system: list.kind === "recruiting" ? RECRUIT_DRAFT_SYSTEM : DRAFT_SYSTEM,
     output_config: { effort: "medium", format: betaZodOutputFormat(DraftSchema) },
     messages: [
