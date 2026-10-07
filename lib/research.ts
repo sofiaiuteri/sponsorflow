@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { z } from "zod";
 import { sql, type List } from "./db";
+import { onResearchComplete } from "./orders";
 
 // AI sponsor research: (1) Claude researches with live web search and writes notes,
 // (2) a second call turns those notes into validated structured prospects for the portal.
@@ -223,6 +224,7 @@ export async function enrichContacts(listId: string) {
   const todo = rows.filter((r) => needsContact(r.reach));
   if (!todo.length) {
     await sql`UPDATE lists SET research_status = 'done', updated_at = now() WHERE id = ${listId}`;
+    await onResearchComplete(listId);
     return;
   }
   await sql`UPDATE lists SET research_status = 'running', research_note = ${`Finding contacts for ${todo.length} brands…`}, updated_at = now() WHERE id = ${listId}`;
@@ -247,4 +249,5 @@ export async function enrichContacts(listId: string) {
   await sql`
     UPDATE lists SET research_status = 'done', research_note = ${`Research complete: contacts found for ${found} of ${todo.length} brands`}, updated_at = now()
     WHERE id = ${listId}`;
+  await onResearchComplete(listId);
 }

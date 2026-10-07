@@ -17,6 +17,12 @@ export type List = {
   research_status: "idle" | "queued" | "running" | "done" | "error";
   research_note: string;
   researched_at: string | null;
+  order_status: "manual" | "pending" | "paid";
+  contact_name: string;
+  website: string;
+  amount_cents: number | null;
+  paid_at: string | null;
+  notified_at: string | null;
   created_at: string;
   updated_at: string;
 };

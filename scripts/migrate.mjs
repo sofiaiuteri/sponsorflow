@@ -79,4 +79,11 @@ await sql`
     reason text NOT NULL,
     created_at timestamptz NOT NULL DEFAULT now()
   )`;
+// Orders (added 2026-10-07)
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS order_status text NOT NULL DEFAULT 'manual'`;
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS contact_name text NOT NULL DEFAULT ''`;
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS website text NOT NULL DEFAULT ''`;
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS amount_cents int`;
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS paid_at timestamptz`;
+await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS notified_at timestamptz`;
 console.log("tables ready");

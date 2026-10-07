@@ -50,6 +50,8 @@ export function SiteFooter() {
           <Link href="/#start" className="hover:text-ink">Free preview</Link>
           <Link href="/beta" className="hover:text-ink">Founding Beta — $29</Link>
           <Link href="/beta#contact" className="hover:text-ink">Contact</Link>
+          <Link href="/terms" className="hover:text-ink">Terms</Link>
+          <Link href="/privacy" className="hover:text-ink">Privacy</Link>
           <span>© {new Date().getFullYear()} SponsorFlow</span>
         </div>
       </div>

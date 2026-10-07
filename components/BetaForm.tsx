@@ -29,20 +29,44 @@ export function BetaForm({ initialPlan = "list" }: { initialPlan?: Intent }) {
     const data = Object.fromEntries(new FormData(e.currentTarget));
     setState("sending");
     try {
-      // Flat fields read cleanly in Formspree's notification emails.
+      const str = (k: string) => (typeof data[k] === "string" ? (data[k] as string) : "");
+      let orderId = "";
+      if (ordering) {
+        // Save the order first so the Stripe payment can be matched back to it and research can start automatically.
+        const res = await fetch("/api/order", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            plan: intent,
+            fullName: str("fullName"),
+            email: str("email"),
+            publication: str("publication"),
+            website: str("website"),
+            topics: str("topics"),
+            audience: str("audience"),
+            location: str("location"),
+            audienceSize: str("audienceSize"),
+            currentPrice: profile.price ?? "",
+            notes: str("message"),
+            acceptTerms: data.acceptTerms === "on",
+          }),
+        });
+        const json = (await res.json().catch(() => ({}))) as { orderId?: string };
+        if (!res.ok || !json.orderId) throw new Error("order failed");
+        orderId = json.orderId;
+      }
+      // Email notification (Formspree). Don't block checkout if it fails.
       await submitLead({
         _subject: `SponsorFlow ${ordering ? PLAN_LABEL[intent] + " order" : "question"}: ${data.publication || data.fullName}`,
         ...data,
         intent: PLAN_LABEL[intent],
-        niche: profile.niche ?? "",
-        audience: profile.audience ?? "",
-        location: profile.location ?? "",
-        audienceSize: profile.audienceSize ?? "",
+        orderId,
         currentPrice: profile.price ?? "",
-      });
+      }).catch(() => {});
       if (checkout) {
         const url = new URL(checkout);
         if (typeof data.email === "string") url.searchParams.set("prefilled_email", data.email);
+        if (orderId) url.searchParams.set("client_reference_id", orderId);
         window.location.href = url.toString();
         return;
       }
@@ -119,6 +143,26 @@ export function BetaForm({ initialPlan = "list" }: { initialPlan?: Intent }) {
           <label htmlFor="website" className="label">Website <span className="font-normal text-ink-muted">· optional</span></label>
           <input id="website" name="website" defaultValue={profile.url} className="field" placeholder="thequadreview.com" />
         </div>
+        {ordering && (
+          <>
+            <div className="sm:col-span-2">
+              <label htmlFor="topics" className="label">Topics you cover</label>
+              <input id="topics" name="topics" required defaultValue={profile.niche} className="field" placeholder="Outdoor adventure, campus life, climate, food" />
+            </div>
+            <div className="sm:col-span-2">
+              <label htmlFor="audience" className="label">Who reads, listens or watches?</label>
+              <textarea id="audience" name="audience" required rows={2} defaultValue={profile.audience} className="field resize-none leading-relaxed" placeholder="University students aged 18 to 24 who love the outdoors" />
+            </div>
+            <div>
+              <label htmlFor="location" className="label">Location</label>
+              <input id="location" name="location" defaultValue={profile.location} className="field" placeholder="Burlington, VT" />
+            </div>
+            <div>
+              <label htmlFor="audienceSize" className="label">Approx. audience size</label>
+              <input id="audienceSize" name="audienceSize" defaultValue={profile.audienceSize} className="field" placeholder="3,000 readers" />
+            </div>
+          </>
+        )}
         <div className="sm:col-span-2">
           <label htmlFor="message" className="label">
             {ordering ? "Anything we should know?" : "Your question"}
@@ -135,10 +179,17 @@ export function BetaForm({ initialPlan = "list" }: { initialPlan?: Intent }) {
         </div>
       </div>
 
-      {profile.name && ordering && (
-        <p className="mt-5 rounded-lg bg-paper px-3.5 py-2.5 text-[13px] text-ink-soft">
-          We&apos;ll include the details you entered for <span className="font-medium text-ink">{profile.name}</span>, so no need to repeat them.
-        </p>
+
+      {ordering && (
+        <label className="mt-5 flex items-start gap-2.5 text-[13px] leading-relaxed text-ink-soft">
+          <input type="checkbox" name="acceptTerms" required className="mt-0.5" />
+          <span>
+            I agree to the{" "}
+            <Link href="/terms" target="_blank" className="underline underline-offset-2 hover:text-ink">Terms of Service</Link> and{" "}
+            <Link href="/privacy" target="_blank" className="underline underline-offset-2 hover:text-ink">Privacy Policy</Link>
+            {intent === "dfy" && ", including the 10% fee on sponsorships SponsorFlow helps me land"}.
+          </span>
+        </label>
       )}
 
       {state === "error" && (
