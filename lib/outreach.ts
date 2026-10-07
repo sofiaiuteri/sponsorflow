@@ -339,3 +339,7 @@ export async function handleBounce(fromHeaderTo: string[], reason: string) {
     await sql`UPDATE outreach_emails SET status = 'failed', error = ${`Bounced: ${reason}`.slice(0, 300)} WHERE lower(to_email) = ${email} AND status = 'sent'`;
   }
 }
+
+export async function markDelivered(resendId: string) {
+  await sql`UPDATE outreach_emails SET delivered_at = coalesce(delivered_at, now()) WHERE resend_id = ${resendId}`;
+}

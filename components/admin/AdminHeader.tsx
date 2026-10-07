@@ -8,7 +8,8 @@ export function AdminHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
         <div className="flex items-center gap-4">
           <Logo />
-          <Link href="/admin" className="text-[13.5px] text-ink-soft hover:text-ink">Admin</Link>
+          <Link href="/admin/dashboard" className="text-[13.5px] text-ink-soft hover:text-ink">Dashboard</Link>
+          <Link href="/admin" className="text-[13.5px] text-ink-soft hover:text-ink">Lists</Link>
         </div>
         <form action={logout}>
           <button className="text-[13.5px] text-ink-soft hover:text-ink">Sign out</button>

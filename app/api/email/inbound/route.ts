@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { handleBounce, handleInboundReply } from "@/lib/outreach";
+import { handleBounce, handleInboundReply, markDelivered } from "@/lib/outreach";
 
 // Resend webhook: replies to sofia@<domain> (email.received) and bounces/complaints.
 export const maxDuration = 60;
@@ -27,6 +27,8 @@ export async function POST(request: Request) {
   try {
     if (event.type === "email.received") {
       await handleInboundReply(event.data.email_id, event.data.from, event.data.subject);
+    } else if (event.type === "email.delivered") {
+      await markDelivered(event.data.email_id);
     } else if (event.type === "email.bounced") {
       await handleBounce(event.data.to, event.data.bounce?.message ?? "bounce");
     } else if (event.type === "email.complained") {

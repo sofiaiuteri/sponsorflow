@@ -86,4 +86,7 @@ await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS website text NOT NULL DEFAU
 await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS amount_cents int`;
 await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS paid_at timestamptz`;
 await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS notified_at timestamptz`;
+// Delivery tracking (added 2026-10-07)
+await sql`ALTER TABLE outreach_emails ADD COLUMN IF NOT EXISTS delivered_at timestamptz`;
+await sql`CREATE INDEX IF NOT EXISTS outreach_resend_idx ON outreach_emails(resend_id)`;
 console.log("tables ready");
