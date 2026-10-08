@@ -362,9 +362,24 @@ export async function handleInboundReply(emailId: string, fromHeader: string, su
     if (optOut) await suppress(from, "replied: opt-out");
   }
 
-  // Also forward to a real inbox.
+  // Also forward to a real inbox, with Reply-To set to the sender (and anyone they cc'd)
+  // so hitting Reply or Reply All answers them directly instead of going back to SponsorFlow.
   const to = match?.customer_email || FORWARD_TO;
-  await resend().emails.receiving.forward({ emailId, to, from: `SponsorFlow replies <replies@${SEND_DOMAIN}>` });
+  if (emailFrom(to) === from) return; // never forward the inbox owner's own mail back to them
+  const ours = (a: string) => a.endsWith(`@${SEND_DOMAIN}`) || a === emailFrom(to);
+  const replyTo = [fromHeader, ...(email?.cc ?? []).filter((c) => !ours(emailFrom(c)))];
+  const note = `Reply from ${fromHeader.replace(/</g, "&lt;")}. Hit Reply (or Reply All to include everyone cc'd) to answer them directly.`;
+  const { error } = email
+    ? await resend().emails.send({
+        from: `${fromName && fromName !== from ? fromName : from} via SponsorFlow <replies@${SEND_DOMAIN}>`,
+        to: [to],
+        replyTo,
+        subject,
+        html: `<p style="color:#666;font-size:13px">${note}</p><hr>${email.html || `<pre style="white-space:pre-wrap;font-family:inherit">${text.replace(/</g, "&lt;")}</pre>`}`,
+        text: `${note}\n\n${text}`,
+      })
+    : { error: new Error("missing email") };
+  if (error) await resend().emails.receiving.forward({ emailId, to, from: `SponsorFlow replies <replies@${SEND_DOMAIN}>` });
 }
 
 /** Answer a reply from the admin inbox. Sent from the same address, threaded with the original. */
