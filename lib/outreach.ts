@@ -111,9 +111,12 @@ const DraftSchema = z.object({
 const DRAFT_SYSTEM = `You write first-touch sponsorship emails for small independent publications. Each email goes to one business and should read like a real person wrote it just for them.
 
 Rules:
-- 90 to 150 words in the body. Plain text, short paragraphs, no bullet points, no bold.
-- Open with the specific opening line provided (you may lightly polish it), then who the sender is, then the one concrete sponsorship idea, then a low-pressure ask for a quick chat.
-- Warm and personable, never salesy or generic. No exaggerated claims about audience size or results.
+- 70 to 130 words in the body. Plain text, short paragraphs, no bullet points, no bold.
+- Greet the contact by first name if one is given ("Hi Sarah,"); otherwise "Hi there,". Never "Dear X team".
+- Start with something specific and true about this business (from the notes), then who the sender is in one sentence, then the one concrete sponsorship idea, then a low-pressure ask for a quick chat.
+- Sound like a real college student writing one email: relaxed, direct, contractions are fine. Vary sentence structure from email to email so no two read like a template.
+- Avoid stock phrases like "I hope this email finds you well", "I am reaching out because", "I wanted to reach out", "Thank you for your time and consideration", "Best regards".
+- Never salesy. No exaggerated claims about audience size or results.
 - Do not use em dashes or en dashes anywhere. Use commas and periods.
 - Include the publication's website link once, naturally.
 - End with the exact signature provided, on its own lines. Do not add anything after the signature.
@@ -147,6 +150,30 @@ async function draftWithAI(list: List, campaign: Campaign, prospects: (Prospect 
 }
 
 const scrubDashes = (t: string) => t.replace(/\s*[—–]\s*/g, ", ");
+
+/** Rewrites unsent first emails (drafts and approved) with the current prompt, keeping their status. */
+export async function redraftPending(listId: string) {
+  const [list] = (await sql`SELECT * FROM lists WHERE id = ${listId}`) as List[];
+  if (!list) return { redrafted: 0 };
+  const campaign = await getOrCreateCampaign(list);
+  const rows = (await sql`
+    SELECT p.*, e.id AS email_id, e.to_email AS to FROM outreach_emails e JOIN prospects p ON p.id = e.prospect_id
+    WHERE e.campaign_id = ${campaign.id} AND e.step = 1 AND e.status IN ('draft', 'approved')
+    ORDER BY p.position`) as (Prospect & { email_id: string; to: string })[];
+  let redrafted = 0;
+  for (let i = 0; i < rows.length; i += 10) {
+    const batch = rows.slice(i, i + 10);
+    const emails = await draftWithAI(list, campaign, batch);
+    for (const [idx, p] of batch.entries()) {
+      const e = emails.find((x) => x.n === idx + 1);
+      if (!e) continue;
+      await sql`UPDATE outreach_emails SET subject = ${scrubDashes(e.subject)}, body = ${scrubDashes(e.body)}
+        WHERE id = ${p.email_id} AND status IN ('draft', 'approved')`;
+      redrafted++;
+    }
+  }
+  return { redrafted };
+}
 
 /** Creates step-1 drafts for every prospect with a published email that doesn't have one yet. */
 export async function draftCampaign(listId: string) {
@@ -182,7 +209,9 @@ export async function draftCampaign(listId: string) {
 // ---------- sending ----------
 
 function footer(email: string, publication: string, address = MAILING_ADDRESS) {
-  return `\n\n\n--\nIf you'd rather not hear from us, just reply "no thanks" or unsubscribe here: ${unsubscribeUrl(email)}\n${publication === "SponsorFlow" ? "SponsorFlow" : `${publication} via SponsorFlow`}, ${address}`;
+  // Kept short and human. Opt-outs work by replying (handled automatically) and via the List-Unsubscribe header.
+  const name = publication.replace(/\s*\(.*\)$/, "").replace(/^TEE\b.*/, "The Experience Exchange");
+  return `\n\n--\nIf this isn't a fit, just reply "no thanks" and I won't follow up.\n${name}, ${address}`;
 }
 
 /**
