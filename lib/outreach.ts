@@ -4,7 +4,7 @@ import { createHmac } from "node:crypto";
 import { Resend } from "resend";
 import { z } from "zod";
 import { sql, type List, type Prospect } from "./db";
-import { RECRUIT_DRAFT_SYSTEM } from "./prompts";
+import { RECRUIT_DRAFT_SYSTEM, SALES_FIELDS_SYSTEM, salesEmail, salesFollowUp, type SalesFields } from "./prompts";
 
 // ---------- configuration ----------
 
@@ -122,7 +122,44 @@ Rules:
 - End with the exact signature provided, on its own lines. Do not add anything after the signature.
 - Subject lines: short, specific, lowercase-friendly, no clickbait (for example "The Experience Exchange x Twin River Outfitters").`;
 
+/** SponsorFlow's own sales outreach uses Sofia's fixed template instead of AI-written copy. */
+const isSales = (list: Pick<List, "publication">) => list.publication === "SponsorFlow";
+
+const SalesFieldsSchema = z.object({
+  items: z.array(z.object({ n: z.number(), first_name: z.string(), publication: z.string(), niche: z.string() })),
+});
+
+export async function draftSales(prospects: (Prospect & { to: string })[]) {
+  const items = prospects
+    .map((p, i) => `${i + 1}. Name: ${p.brand}
+   Type: ${p.category}
+   Notes: ${p.why}
+   Contact notes: ${p.contact}
+   Email: ${p.to}
+   Website: ${p.evidence}`)
+    .join("\n\n");
+  const response = await new Anthropic().beta.messages.parse({
+    model: "claude-opus-5-5",
+    max_tokens: 4000,
+    system: SALES_FIELDS_SYSTEM,
+    output_config: { effort: "low", format: betaZodOutputFormat(SalesFieldsSchema) },
+    messages: [{ role: "user", content: `Fill in the blanks for each item, and set "n" to the item's number:\n\n${items}` }],
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default",
+  });
+  return prospects.map((p, i) => {
+    const f = response.parsed_output?.items.find((x) => x.n === i + 1);
+    const fields: SalesFields = {
+      first_name: f?.first_name.trim() ?? "",
+      publication: f?.publication.trim() || p.brand.replace(/\s*\(.*\)\s*/g, " ").trim(),
+      niche: f?.niche.trim() || "independent",
+    };
+    return { n: i + 1, brand: p.brand, ...salesEmail(fields) };
+  });
+}
+
 async function draftWithAI(list: List, campaign: Campaign, prospects: (Prospect & { to: string })[]) {
+  if (isSales(list)) return draftSales(prospects);
   const client = new Anthropic();
   const items = prospects
     .map(
@@ -238,9 +275,13 @@ export async function sendTestCopy(emailId: string, toOverride = "") {
   return error ? { ok: false, note: error.message } : { ok: true, note: `Test sent to ${to}` };
 }
 
-function followUpBody(signature: string) {
-  return `Hi again,\n\nJust following up on my note below in case it got buried. I'd love to hear if a partnership could be a fit, and I'm happy to send more details or ideas.\n\nThanks so much,\n${signature}`;
+function followUpBody(list: List, signature: string) {
+  return list.kind === "recruiting"
+    ? `Hi again,\n\nI wanted to follow up on my note below. If you're able to share the opportunity with students who might be interested, I'd really appreciate it, and if not, no worries at all.\n\nThanks,\n${signature}`
+    : `Hi again,\n\nI wanted to follow up on my note below. If a partnership could be a fit, I'd be glad to share more details, and if not, no worries at all.\n\nThanks,\n${signature}`;
 }
+
+const quote = (body: string) => `\n\n> ${body.replace(/\n/g, "\n> ")}`;
 
 async function sendOne(e: OutreachEmail, campaign: Campaign, publication: string) {
   const { data, error } = await resend().emails.send(
@@ -270,19 +311,32 @@ async function sendOne(e: OutreachEmail, campaign: Campaign, publication: string
 }
 
 /** Queues follow-ups for step-1 emails sent `followup_days` ago with no reply yet. */
-async function queueFollowUps(campaign: Campaign) {
+async function queueFollowUps(campaign: Campaign, list: List) {
   if (!campaign.followups) return;
-  await sql`
-    INSERT INTO outreach_emails (campaign_id, prospect_id, step, to_email, subject, body, status)
-    SELECT e.campaign_id, e.prospect_id, 2, e.to_email,
-      CASE WHEN e.subject ILIKE 're:%' THEN e.subject ELSE 'Re: ' || e.subject END,
-      ${followUpBody(campaign.signature)} || E'\\n\\n> ' || replace(e.body, E'\\n', E'\\n> '),
-      'approved'
+  const due = (await sql`
+    SELECT e.prospect_id, e.to_email, e.subject, e.body, p.brand
     FROM outreach_emails e JOIN prospects p ON p.id = e.prospect_id
     WHERE e.campaign_id = ${campaign.id} AND e.step = 1 AND e.status = 'sent'
       AND e.sent_at < now() - make_interval(days => ${campaign.followup_days})
       AND p.status = 'Contacted'
-    ON CONFLICT (prospect_id, step) DO NOTHING`;
+      AND NOT EXISTS (SELECT 1 FROM outreach_emails f WHERE f.prospect_id = e.prospect_id AND f.step = 2)`) as {
+    prospect_id: string; to_email: string; subject: string; body: string; brand: string;
+  }[];
+  for (const e of due) {
+    const subject = /^re:/i.test(e.subject) ? e.subject : `Re: ${e.subject}`;
+    await sql`
+      INSERT INTO outreach_emails (campaign_id, prospect_id, step, to_email, subject, body, status)
+      VALUES (${campaign.id}, ${e.prospect_id}, 2, ${e.to_email}, ${subject}, ${followUpFor(list, campaign, e) + quote(e.body)}, 'approved')
+      ON CONFLICT (prospect_id, step) DO NOTHING`;
+  }
+}
+
+/** Follow-up text for one first email (without the quoted original). */
+export function followUpFor(list: List, campaign: Campaign, first: { subject: string; body: string; brand: string }) {
+  if (!isSales(list)) return followUpBody(list, campaign.signature);
+  const greeting = first.body.split("\n")[0].match(/^Hi [^,\n]+,/)?.[0] ?? "Hi there,";
+  const publication = first.subject.match(/^(?:re:\s*)?sponsor research for (.+)$/i)?.[1] ?? first.brand.replace(/\s*\(.*\)\s*/g, " ").trim();
+  return salesFollowUp(greeting, publication);
 }
 
 /** Sends today's batch for one campaign, respecting the daily cap, suppressions and replies. */
@@ -294,7 +348,7 @@ export async function sendCampaignBatch(campaignId: string) {
   if (!campaign || campaign.status !== "active") return { sent: 0, note: "Campaign isn't active" };
   const [list] = (await sql`SELECT * FROM lists WHERE id = ${campaign.list_id}`) as List[];
 
-  await queueFollowUps(campaign);
+  await queueFollowUps(campaign, list);
   const [{ today }] = (await sql`
     SELECT count(*)::int AS today FROM outreach_emails
     WHERE campaign_id = ${campaignId} AND sent_at >= date_trunc('day', now())`) as { today: number }[];

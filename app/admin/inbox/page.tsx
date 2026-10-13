@@ -31,14 +31,28 @@ type Row = {
   sample_count: number | null;
 };
 
+// SponsorFlow sales replies: picks a starting draft from what they wrote. Always reviewed before sending.
+function salesReply(r: Row, first: string) {
+  const text = replyPreview(r.body).toLowerCase();
+  const show = (r.brand ?? "your show").replace(/\s*\(.*\)\s*/g, " ").trim();
+  if (/scam|legit|spam|who are you|how did you get/.test(text)) {
+    return `Hi ${first},\n\nThat's a fair question, and thanks for asking. Cold emails from someone you haven't heard of deserve some skepticism.\n\nI'm Sofia Iuteri, founder of The Experience Exchange (https://theexperienceexchange.vercel.app), an independent outdoor adventure magazine based at Washington & Lee University. I started SponsorFlow after finding advertisers for the magazine myself and seeing how much time it takes. The sample is simply a list of brands, why they fit and who to contact, with no payment or sign-up involved.\n\nI've removed you from my outreach list, so you won't hear from me again unless you reach out. Best of luck with ${show}.\n\nBest,\nSofia`;
+  }
+  if (/not interested|no thanks|no thank you|\bpass\b|unsubscribe|remove me/.test(text)) {
+    return `Hi ${first},\n\nNo problem at all, thanks for letting me know. I won't follow up. Best of luck with ${show}!\n\nBest,\nSofia`;
+  }
+  if (/\$|price|pay|buy|purchase|full list|done.for.you|pitches for/.test(text)) {
+    return `Hi ${first},\n\nGreat to hear! There are two options:\n\nSponsor List, $29: 20 brands researched for ${show}, with why each fits, a pitch angle, an opening line and suggested contacts. Usually ready within a day.\n${SITE}/beta?plan=list\n\nDone for you, $49 plus 10% of any deal from it within 12 months: I write and send the pitches and pass interested brands to you.\n${SITE}/beta?plan=dfy\n\nIf you're not sure, I'd start with the list. If it isn't useful, email me and I'll refund you.\n\nBest,\nSofia`;
+  }
+  if (r.sample_token && r.sample_status === "done") {
+    return `Hi ${first},\n\nThanks for getting back to me! Here are your five complimentary sponsor prospects for ${show}:\n${SITE}/l/${r.sample_token}\n\nEach one includes why the brand fits, a pitch idea and a suggested contact. To be upfront, these are researched prospects, not brands that have agreed to anything, so the outreach is still up to you.\n\nI'd really value your honest feedback, even if some of them miss the mark.\n\nBest,\nSofia`;
+  }
+  return `Hi ${first},\n\nThanks for getting back to me! I'm putting together your five complimentary sponsor prospects for ${show} now and will send them over shortly.\n\nBest,\nSofia`;
+}
+
 function suggested(r: Row) {
   const first = r.from_name.split(/\s+/)[0] || "there";
-  if (r.campaign_pub === "SponsorFlow" && r.sample_token && r.sample_status === "done") {
-    return `Hi ${first},\n\nThanks so much for getting back to me! Here are 5 businesses that would be a great fit to sponsor ${r.brand}, each with why it fits, a sponsorship idea, an opening line and who to contact:\n${SITE}/l/${r.sample_token}\n\nIf they're helpful, the full list of 20 is $29 and arrives within a day: ${SITE}/beta?plan=list\nAnd if you'd rather we send the pitches for you, that's our Done-for-you plan.\n\nBest,\nSofia`;
-  }
-  if (r.campaign_pub === "SponsorFlow") {
-    return `Hi ${first},\n\nThanks so much for getting back to me! I'm putting together your 5 free sponsor matches for ${r.brand} now and will send them over shortly.\n\nBest,\nSofia`;
-  }
+  if (r.campaign_pub === "SponsorFlow") return salesReply(r, first);
   if (r.campaign_pub === "The Experience Exchange") {
     return `Hi ${first},\n\nThanks so much for getting back to me! I'd love to work together.\n\nHere's our media kit with our packages and prices: https://theexperienceexchange.vercel.app/advertise\nMost local businesses start with our Local Partner package ($150 a semester: a half-page print ad, an Instagram feature and your logo on our site), and our Issue Sponsor package ($300) is the biggest spotlight we offer.\n\nWould you have 15 minutes this week to chat? I'm happy to stop by in person too.\n\nBest,\nSofia Iuteri\nFounder & Editor-in-Chief, The Experience Exchange`;
   }
