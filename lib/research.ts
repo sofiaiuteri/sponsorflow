@@ -44,7 +44,10 @@ For each prospect, record:
 - Where to reach them: if you happen to see a published email, contact form or partnerships page while researching, record it. Otherwise write "TBD". A second pass looks up contacts, so don't spend searches on them now.
 - Evidence: a URL that shows why they fit.
 
-If you cannot verify a detail, say so in that field rather than inventing it. Finish with all ${count} prospects written out clearly.`;
+Only include prospects you actually verified. If you can't confirm a business is real, operating and a fit, drop it and find another instead. Every field is read by the customer, so write only what you confirmed: never put notes about your process or uncertainty in any field (no "unverified", "I believe", "not checked", "if it's still operating", "fit noted as"). Fit is your judgment and belongs only in the Fit field. Finish with all ${count} prospects written out clearly.`;
+
+/** Research-process language that must never reach a customer. */
+export const HEDGE = /unverified|not (?:checked|verified|confirmed)|couldn'?t (?:confirm|verify)|i believe|if (?:confirmed|it'?s still)|fit noted as/i;
 
 function profileText(list: List, exclude: string[]) {
   return [
@@ -69,7 +72,7 @@ async function runWebResearch(prompt: string, count: number) {
         max_tokens: 32000,
         system: researchSystem(count),
         output_config: { effort: "medium" },
-        tools: [{ type: "web_search_20260209", name: "web_search", max_uses: count <= 5 ? 6 : 12 }],
+        tools: [{ type: "web_search_20260209", name: "web_search", max_uses: count <= 5 ? 10 : 12 }],
         messages,
         ...FALLBACK,
       })
@@ -97,7 +100,7 @@ async function structure(notes: string) {
     messages: [
       {
         role: "user",
-        content: `Convert these sponsor research notes into the structured format. Keep every verified detail and URL exactly as written, keep wording close to the notes, and replace any em dashes with commas or periods. Leave a field empty if the notes don't have it.\n\n<notes>\n${notes}\n</notes>`,
+        content: `Convert these sponsor research notes into the structured format. Keep every verified detail and URL exactly as written, keep wording close to the notes, and replace any em dashes with commas or periods. Leave a field empty if the notes don't have it. Leave out any prospect the notes say couldn't be verified, and remove any remarks about verification, confidence or fit ratings from the text fields, since customers read them.\n\n<notes>\n${notes}\n</notes>`,
       },
     ],
     ...FALLBACK,
@@ -128,12 +131,13 @@ export async function researchList(listId: string, { count = 20 }: { count?: num
 
   try {
     const existing = (await sql`SELECT brand FROM prospects WHERE list_id = ${listId}`) as { brand: string }[];
-    const notes = await runWebResearch(profileText(list, existing.map((e) => e.brand)), count);
-    const prospects = await structure(notes);
+    // Small lists research a couple of spares so any entry that fails the quality check can be dropped.
+    const notes = await runWebResearch(profileText(list, existing.map((e) => e.brand)), count <= 5 ? count + 2 : count);
+    const prospects = (await structure(notes)).filter((p) => !HEDGE.test(`${p.why} ${p.angle} ${p.opener}`));
 
     const seen = new Set(existing.map((e) => e.brand.toLowerCase()));
     const order = { High: 0, Medium: 1, Low: 2 };
-    const fresh = prospects.slice(0, count).filter((p) => p.brand && !seen.has(p.brand.toLowerCase())).sort((a, b) => order[a.fit] - order[b.fit]);
+    const fresh = prospects.filter((p) => p.brand && !seen.has(p.brand.toLowerCase())).slice(0, count).sort((a, b) => order[a.fit] - order[b.fit]);
 
     const [{ start }] = (await sql`SELECT coalesce(max(position), -1) + 1 AS start FROM prospects WHERE list_id = ${listId}`) as { start: number }[];
     for (const [i, p] of fresh.entries()) {
@@ -223,7 +227,7 @@ async function lookupContacts(batch: { brand: string; category: string; evidence
   return parsed.parsed_output?.contacts ?? [];
 }
 
-const needsContact = (reach: string) => !reach.trim() || /^(tbd|not checked|unknown|n\/a)/i.test(reach.trim()) || !/[@.]/.test(reach);
+const needsContact = (reach: string) => !reach.trim() || /^(tbd|not checked|not found|none|unknown|n\/a)/i.test(reach.trim()) || !/[@.]/.test(reach);
 
 export async function enrichContacts(listId: string) {
   const [list] = (await sql`SELECT * FROM lists WHERE id = ${listId}`) as List[];
@@ -251,7 +255,7 @@ export async function enrichContacts(listId: string) {
     }
     for (const c of r.value) {
       const row = todo.find((t) => t.brand.toLowerCase() === c.brand.toLowerCase());
-      if (!row || !c.reach.trim()) continue;
+      if (!row || needsContact(c.reach)) continue;
       await sql`UPDATE prospects SET contact = ${c.contact}, reach = ${c.reach}, updated_at = now() WHERE id = ${row.id}`;
       found++;
     }
