@@ -49,6 +49,7 @@ export function SiteFooter() {
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           <Link href="/#start" className="hover:text-ink">Free preview</Link>
           <Link href="/beta" className="hover:text-ink">Founding Beta — $29</Link>
+          <Link href="/ai-check" className="hover:text-ink">Free AI visibility check</Link>
           <Link href="/beta#contact" className="hover:text-ink">Contact</Link>
           <Link href="/terms" className="hover:text-ink">Terms</Link>
           <Link href="/privacy" className="hover:text-ink">Privacy</Link>

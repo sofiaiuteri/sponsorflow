@@ -129,4 +129,18 @@ await sql`
 await sql`ALTER TABLE lists ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'sponsors'`;
 // School field for national correspondents (added 2026-10-07)
 await sql`ALTER TABLE tee_applications ADD COLUMN IF NOT EXISTS school text NOT NULL DEFAULT ''`;
+// Free AI visibility check requests from /ai-check (added 2026-10-21)
+await sql`
+  CREATE TABLE IF NOT EXISTS ai_check_requests (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    business text NOT NULL,
+    website text NOT NULL DEFAULT '',
+    city text NOT NULL DEFAULT '',
+    kind text NOT NULL DEFAULT '',
+    name text NOT NULL DEFAULT '',
+    email text NOT NULL,
+    notes text NOT NULL DEFAULT '',
+    status text NOT NULL DEFAULT 'New',
+    created_at timestamptz NOT NULL DEFAULT now()
+  )`;
 console.log("tables ready");
