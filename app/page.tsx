@@ -125,6 +125,34 @@ export default function Home() {
           <p className="mt-1 max-w-3xl text-[12.5px] leading-relaxed text-ink-muted">{TRUST_NOTE}</p>
         </section>
 
+        {/* Products */}
+        <section id="products" className="scroll-mt-20 mx-auto max-w-6xl px-5 pt-20 sm:px-8 sm:pt-28">
+          <p className="eyebrow">What we do</p>
+          <h2 className="mt-3 font-serif text-[32px] leading-[1.08] sm:text-[42px]">Two ways we can help.</h2>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2">
+            <Link href="/#pricing" className="group rounded-2xl border border-line bg-card p-6 transition hover:border-ink">
+              <p className="eyebrow">For podcasts, newsletters and student publications</p>
+              <h3 className="mt-3 text-[20px] font-medium">Sponsor Research</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+                We find 20 brands that fit your audience, explain why each one fits, and suggest who to contact. $29 for the list, or we can send the pitches for you.
+              </p>
+              <span className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium text-accent">
+                See pricing <Arrow className="transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+            <Link href="/ai-check" className="group rounded-2xl border border-line bg-card p-6 transition hover:border-ink">
+              <p className="eyebrow">For local businesses</p>
+              <h3 className="mt-3 text-[20px] font-medium">AI Visibility Check</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+                Find out if ChatGPT and other AI tools recommend your business, and what they get wrong. The report is free, and a full cleanup is $49.
+              </p>
+              <span className="mt-5 inline-flex items-center gap-1.5 text-[14px] font-medium text-accent">
+                Get a free report <Arrow className="transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          </div>
+        </section>
+
         {/* Built for */}
         <section className="mx-auto max-w-6xl px-5 py-20 sm:px-8 sm:py-28">
           <p className="eyebrow text-center">Built for small media teams</p>

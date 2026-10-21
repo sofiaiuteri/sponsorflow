@@ -21,6 +21,7 @@ export function SiteHeader({ minimal = false }: { minimal?: boolean }) {
             <Link href="/#how" className="transition hover:text-ink">How it works</Link>
             <Link href="/dashboard" className="transition hover:text-ink">Sample list</Link>
             <Link href="/#pricing" className="transition hover:text-ink">Pricing</Link>
+            <Link href="/ai-check" className="transition hover:text-ink">AI Visibility Check</Link>
           </nav>
         )}
         <Link href="/beta" className="rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-paper transition hover:bg-accent">
@@ -65,13 +66,16 @@ export function AiCheckHeader() {
   return (
     <header className="sticky top-0 z-30 border-b border-line/70 bg-paper/85 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
-        <Link href="/ai-check" className="inline-flex items-baseline gap-2 tracking-tight">
-          <span className="text-[19px] font-semibold">AI Visibility Check</span>
-          <span className="text-[12.5px] text-ink-muted">by SponsorFlow</span>
-        </Link>
-        <Link href="#check" className="rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-paper transition hover:bg-accent">
-          Get my free report
-        </Link>
+        <div className="inline-flex items-baseline gap-2 tracking-tight">
+          <Link href="/ai-check" className="text-[19px] font-semibold">AI Visibility Check</Link>
+          <Link href="/" className="text-[12.5px] text-ink-muted underline-offset-4 hover:text-ink hover:underline">by SponsorFlow</Link>
+        </div>
+        <div className="flex items-center gap-5">
+          <Link href="/#products" className="hidden text-[14px] text-ink-soft transition hover:text-ink sm:inline">All products</Link>
+          <Link href="#check" className="rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-paper transition hover:bg-accent">
+            Get my free report
+          </Link>
+        </div>
       </div>
     </header>
   );

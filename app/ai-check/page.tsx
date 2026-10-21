@@ -29,7 +29,7 @@ export default function AiCheckPage() {
           <div>
             <p className="eyebrow">AI Visibility Check · free report</p>
             <h1 className="mt-3 font-serif text-[42px] leading-[1.04] sm:text-[60px]">Is ChatGPT recommending your business?</h1>
-            <p className="mt-3 text-[13px] text-ink-muted">A separate service from SponsorFlow&apos;s sponsor research for publishers.</p>
+            <p className="mt-3 text-[13px] text-ink-muted">One of SponsorFlow&apos;s services, made for local businesses. It&apos;s separate from our sponsor research for publishers.</p>
             <p className="mt-5 max-w-md text-[16.5px] leading-relaxed text-ink-soft">
               More and more customers skip the search results and just ask ChatGPT, Perplexity or Google&apos;s AI where to go. If AI doesn&apos;t know about you, or has your hours wrong, those customers end up somewhere else.
             </p>
