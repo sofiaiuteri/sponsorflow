@@ -49,8 +49,41 @@ export function SiteFooter() {
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           <Link href="/#start" className="hover:text-ink">Free preview</Link>
           <Link href="/beta" className="hover:text-ink">Founding Beta — $29</Link>
-          <Link href="/ai-check" className="hover:text-ink">Free AI visibility check</Link>
+          <Link href="/ai-check" className="hover:text-ink">AI visibility checks for local businesses</Link>
           <Link href="/beta#contact" className="hover:text-ink">Contact</Link>
+          <Link href="/terms" className="hover:text-ink">Terms</Link>
+          <Link href="/privacy" className="hover:text-ink">Privacy</Link>
+          <span>© {new Date().getFullYear()} SponsorFlow</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+/** Header and footer for /ai-check, a separate service, so none of the sponsor-research CTAs show. */
+export function AiCheckHeader() {
+  return (
+    <header className="sticky top-0 z-30 border-b border-line/70 bg-paper/85 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
+        <Link href="/ai-check" className="inline-flex items-baseline gap-2 tracking-tight">
+          <span className="text-[19px] font-semibold">AI Visibility Check</span>
+          <span className="text-[12.5px] text-ink-muted">by SponsorFlow</span>
+        </Link>
+        <Link href="#check" className="rounded-full bg-ink px-4 py-2 text-[13.5px] font-medium text-paper transition hover:bg-accent">
+          Get my free report
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+export function AiCheckFooter() {
+  return (
+    <footer className="mt-auto border-t border-line">
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-10 text-[13.5px] text-ink-muted sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <span>AI Visibility Check, a service by SponsorFlow.</span>
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <a href="mailto:sofia@sponsorflowhq.com" className="hover:text-ink">Contact</a>
           <Link href="/terms" className="hover:text-ink">Terms</Link>
           <Link href="/privacy" className="hover:text-ink">Privacy</Link>
           <span>© {new Date().getFullYear()} SponsorFlow</span>
