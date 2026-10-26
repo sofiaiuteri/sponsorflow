@@ -43,6 +43,6 @@ export async function createSample(replyId: string) {
     INSERT INTO lists (publication, summary, plan, customer_email, profile, sample_for, research_status, research_note)
     VALUES (${r.brand}, ${r.category}, 'sample', ${r.from_email}, ${profile}, ${r.prospect_id}, 'queued', 'Starting…')
     RETURNING id`) as { id: string }[];
-  after(() => researchList(list.id, { count: 5 }));
+  after(() => researchList(list.id, { count: 3 }));
   revalidatePath("/admin/inbox");
 }

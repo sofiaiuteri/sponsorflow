@@ -45,9 +45,9 @@ function salesReply(r: Row, first: string) {
     return `Hi ${first},\n\nGreat to hear! There are two options:\n\nSponsor List, $29: 20 brands researched for ${show}, with why each fits, a pitch angle, an opening line and suggested contacts. Usually ready within a day.\n${SITE}/beta?plan=list\n\nDone for you, $49 plus 10% of any deal from it within 12 months: I write and send the pitches and pass interested brands to you.\n${SITE}/beta?plan=dfy\n\nIf you're not sure, I'd start with the list. If it isn't useful, email me and I'll refund you.\n\nBest,\nSofia`;
   }
   if (r.sample_token && r.sample_status === "done") {
-    return `Hi ${first},\n\nThanks for getting back to me! Here are your five complimentary sponsor prospects for ${show}:\n${SITE}/l/${r.sample_token}\n\nEach one includes why the brand fits, a pitch idea and a suggested contact. To be upfront, these are researched prospects, not brands that have agreed to anything, so the outreach is still up to you.\n\nI'd really value your honest feedback, even if some of them miss the mark.\n\nBest,\nSofia`;
+    return `Hi ${first},\n\nThanks for getting back to me! Here are your three complimentary sponsor prospects for ${show}:\n${SITE}/l/${r.sample_token}\n\nEach one includes why the brand fits, a pitch idea and a suggested contact. To be upfront, these are researched prospects, not brands that have agreed to anything, so the outreach is still up to you.\n\nI'd really value your honest feedback, even if some of them miss the mark.\n\nBest,\nSofia`;
   }
-  return `Hi ${first},\n\nThanks for getting back to me! I'm putting together your five complimentary sponsor prospects for ${show} now and will send them over shortly.\n\nBest,\nSofia`;
+  return `Hi ${first},\n\nThanks for getting back to me! I'm putting together your three complimentary sponsor prospects for ${show} now and will send them over shortly.\n\nBest,\nSofia`;
 }
 
 function suggested(r: Row) {

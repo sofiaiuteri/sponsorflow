@@ -257,7 +257,7 @@ export function Portal({ token, list, initial }: { token: string; list: List; in
       {list.plan === "sample" && (
         <div className="mt-10 grid gap-6 rounded-2xl bg-ink px-6 py-8 text-paper sm:px-10 md:grid-cols-[1fr_auto] md:items-center">
           <div>
-            <h2 className="font-serif text-[28px] leading-tight">This is a free sample of 5</h2>
+            <h2 className="font-serif text-[28px] leading-tight">This is a free sample of {prospects.length}</h2>
             <p className="mt-2 max-w-xl text-[14.5px] text-paper/70">
               Your full list has 20 sponsors researched for {list.publication}, each with why it fits, a pitch idea, an opening line and who to contact. Delivered within 3 business days, refund if it isn&apos;t useful.
             </p>

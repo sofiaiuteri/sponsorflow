@@ -37,7 +37,7 @@ export const SALES_FIELDS_SYSTEM = `You fill in three blanks for a fixed cold em
 For each item, return:
 - first_name: the first name of the person who will read the email, only if the notes make it clear (for example the publication is named after one person, or the email address is clearly a person's first name like derick@...). Otherwise an empty string. Never guess from a shared inbox like info@, hello@ or a show name.
 - publication: the name people actually call it, cleaned up. Drop anything in parentheses, author credits and words like "team". For example "Derick's Substack (Derick Lugo)" becomes "Derick's Substack", "Your Daily Scholarship (No Debt College)" becomes "Your Daily Scholarship".
-- niche: 2 to 5 lowercase words that complete "while researching ___ creators", describing the topic and format, for example "thru-hiking podcast", "outdoor newsletter", "student magazine", "trail running". Base it only on the notes. Never mention a location unless it's the main topic.`;
+- niche: 2 to 5 lowercase words that complete "while looking at ___", describing the topic and format, for example "thru-hiking podcasts", "outdoor newsletters", "student magazines", "trail running podcasts". Base it only on the notes. Never mention a location unless it's the main topic.`;
 
 export type SalesFields = { first_name: string; publication: string; niche: string };
 
@@ -50,9 +50,9 @@ My name is Sofia Iuteri, and I'm the founder of The Experience Exchange, an inde
 
 That experience led me to launch SponsorFlow, a service that helps independent creators identify potential sponsors and streamline their outreach.
 
-I came across ${publication} while researching ${niche} creators and saw potential for brand partnerships.
+I came across ${publication} while looking at ${niche}, and I think your audience is one brands would love to reach.
 
-We're currently offering 20 researched sponsor prospects for $29, including brand-fit insights, pitch ideas, and suggested contacts. I'd be happy to share five complimentary prospects first so you can evaluate the research before committing. Would that be of interest?
+We're currently offering 20 researched sponsor prospects for $29, including brand-fit insights, pitch ideas, and suggested contacts. I'd be happy to share three complimentary prospects first so you can evaluate the research before committing. Would that be of interest?
 
 Best,
 Sofia Iuteri
@@ -65,7 +65,7 @@ https://sponsorflowhq.com`,
 export function salesFollowUp(greeting: string, publication: string) {
   return `${greeting}
 
-I wanted to follow up on my note about sponsor research for ${publication}. The offer of five complimentary prospects still stands, and there's no obligation to purchase anything afterward. If that sounds useful, I'd be glad to put them together for you.
+I wanted to follow up on my note about sponsor research for ${publication}. The offer of three complimentary prospects still stands, and there's no obligation to purchase anything afterward. If that sounds useful, I'd be glad to put them together for you.
 
 If now isn't a good time, no problem at all. I won't reach out again.
 
