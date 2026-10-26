@@ -143,4 +143,11 @@ await sql`
     status text NOT NULL DEFAULT 'New',
     created_at timestamptz NOT NULL DEFAULT now()
   )`;
+// TEE social media weekly planner, edited from theexperienceexchange.vercel.app/social-plan.html (added 2026-10-26)
+await sql`
+  CREATE TABLE IF NOT EXISTS tee_social_schedule (
+    week date PRIMARY KEY,
+    rows jsonb NOT NULL DEFAULT '[]',
+    updated_at timestamptz NOT NULL DEFAULT now()
+  )`;
 console.log("tables ready");
