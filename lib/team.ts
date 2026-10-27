@@ -12,6 +12,10 @@ export const TEE_ROLES = [
   "Podcast Host & Producer",
   "Business & Partnerships",
   "Events & Trips",
+  "Podcast Lead",
+  "Business Development Lead",
+  "Creative Director",
+  "Campus Network Lead",
   "Not sure yet",
 ] as const;
 export const APPLICATION_STATUSES = ["New", "Interviewing", "Accepted", "Declined"] as const;
