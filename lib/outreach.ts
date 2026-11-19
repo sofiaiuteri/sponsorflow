@@ -353,19 +353,32 @@ export async function sendCampaignBatch(campaignId: string) {
   const [list] = (await sql`SELECT * FROM lists WHERE id = ${campaign.list_id}`) as List[];
 
   await queueFollowUps(campaign, list);
+  const capNewOnly = list.publication === "SMI Consulting";
   const [{ today }] = (await sql`
     SELECT count(*)::int AS today FROM outreach_emails
-    WHERE campaign_id = ${campaignId} AND sent_at >= date_trunc('day', now())`) as { today: number }[];
+    WHERE campaign_id = ${campaignId} AND sent_at >= date_trunc('day', now())
+      AND (${!capNewOnly} OR step = 1)`) as { today: number }[];
   const room = Math.max(0, campaign.daily_cap - today);
-  if (!room) return { sent: 0, note: "Daily limit reached" };
+  // SMI Consulting: the cap limits NEW emails per day; follow-ups go out on top (also capped at daily_cap).
+  const extra = capNewOnly ? campaign.daily_cap : 0;
+  if (!room && !extra) return { sent: 0, note: "Daily limit reached" };
 
   const due = (await sql`
     SELECT e.* FROM outreach_emails e JOIN prospects p ON p.id = e.prospect_id
     WHERE e.campaign_id = ${campaignId} AND e.status = 'approved'
       AND p.status <> ALL(${STOP_STATUSES})
       AND lower(e.to_email) NOT IN (SELECT email FROM suppressions)
+      AND (${!capNewOnly} OR e.step = 1)
     ORDER BY e.step DESC, p.position
     LIMIT ${room}`) as OutreachEmail[];
+  if (capNewOnly) {
+    due.unshift(...((await sql`
+      SELECT e.* FROM outreach_emails e JOIN prospects p ON p.id = e.prospect_id
+      WHERE e.campaign_id = ${campaignId} AND e.status = 'approved' AND e.step > 1
+        AND p.status <> ALL(${STOP_STATUSES})
+        AND lower(e.to_email) NOT IN (SELECT email FROM suppressions)
+      ORDER BY p.position LIMIT ${extra}`) as OutreachEmail[]));
+  }
 
   let sent = 0;
   for (const e of due) {
@@ -383,7 +396,16 @@ export async function sendCampaignBatch(campaignId: string) {
   return { sent, note: `Sent ${sent} today` };
 }
 
+/** US Thanksgiving (4th Thursday of November), Christmas and New Year's Day: no outreach. */
+function isSendHoliday(d = new Date()) {
+  const ny = new Date(d.toLocaleString("en-US", { timeZone: "America/New_York" }));
+  const m = ny.getMonth(), day = ny.getDate();
+  if ((m === 11 && day === 25) || (m === 0 && day === 1)) return true;
+  return m === 10 && ny.getDay() === 4 && day >= 22 && day <= 28;
+}
+
 export async function sendAllActive() {
+  if (isSendHoliday()) return [{ id: "all", sent: 0, note: "Holiday, no sends today" }];
   const active = (await sql`SELECT id FROM campaigns WHERE status = 'active'`) as { id: string }[];
   const results = [];
   for (const c of active) results.push({ id: c.id, ...(await sendCampaignBatch(c.id)) });
