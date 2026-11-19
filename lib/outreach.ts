@@ -358,7 +358,15 @@ export async function sendCampaignBatch(campaignId: string) {
     SELECT count(*)::int AS today FROM outreach_emails
     WHERE campaign_id = ${campaignId} AND sent_at >= date_trunc('day', now())
       AND (${!capNewOnly} OR step = 1)`) as { today: number }[];
-  const room = Math.max(0, campaign.daily_cap - today);
+  let cap = campaign.daily_cap;
+  if (capNewOnly) {
+    // Warm-up ramp: 20 new on the first send day, 30 on the second, then daily_cap.
+    const [{ days }] = (await sql`
+      SELECT count(DISTINCT date(sent_at))::int AS days FROM outreach_emails
+      WHERE campaign_id = ${campaignId} AND step = 1 AND sent_at < date_trunc('day', now())`) as { days: number }[];
+    cap = Math.min(cap, 20 + 10 * days);
+  }
+  const room = Math.max(0, cap - today);
   // SMI Consulting: the cap limits NEW emails per day; follow-ups go out on top (also capped at daily_cap).
   const extra = capNewOnly ? campaign.daily_cap : 0;
   if (!room && !extra) return { sent: 0, note: "Daily limit reached" };
