@@ -333,6 +333,10 @@ async function queueFollowUps(campaign: Campaign, list: List) {
 
 /** Follow-up text for one first email (without the quoted original). */
 export function followUpFor(list: List, campaign: Campaign, first: { subject: string; body: string; brand: string }) {
+  if (list.publication === "SMI Consulting") {
+    const greeting = first.body.split("\n")[0].match(/^Hi [^,\n]+,/)?.[0] ?? "Hi there,";
+    return `${greeting}\n\nI wanted to follow up on my earlier email.\n\nI believe there may be opportunities to simplify some of the day-to-day work at ${first.brand} through practical AI tools and automation.\n\nI'd be glad to connect briefly to learn more about your operations and see whether there's a good fit.\n\nBest,\nSofia`;
+  }
   if (!isSales(list)) return followUpBody(list, campaign.signature);
   const greeting = first.body.split("\n")[0].match(/^Hi [^,\n]+,/)?.[0] ?? "Hi there,";
   const publication = first.subject.match(/^(?:re:\s*)?sponsor research for (.+)$/i)?.[1] ?? first.brand.replace(/\s*\(.*\)\s*/g, " ").trim();
