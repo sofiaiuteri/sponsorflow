@@ -57,7 +57,7 @@ export default function AiCheckPage() {
 
             <p className="mt-8 border-t border-line pt-4 text-[14px] leading-relaxed text-ink-soft">
               Hi, I&apos;m Sofia. I&apos;m a student at Washington and Lee, and I run{" "}
-              <a href="https://smi-consulting.vercel.app" target="_blank" rel="noopener noreferrer" className="underline decoration-line-strong underline-offset-4 hover:text-ink">
+              <a href="https://otium-studio.vercel.app" target="_blank" rel="noopener noreferrer" className="underline decoration-line-strong underline-offset-4 hover:text-ink">
                 Otium
               </a>
               , an AI consulting studio for small businesses. I started by running these checks for local shops near campus and kept finding the same problems, so now I offer them to small businesses anywhere.

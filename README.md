@@ -8,7 +8,7 @@ SponsorFlow helps small podcasts, newsletters, and student publications find spo
 
 I built it after doing this by hand for [The Experience Exchange](https://theexperienceexchange.vercel.app), the outdoor magazine I run at Washington and Lee. Our first issue brought in $5,000 in ad revenue, and I wanted to turn that process into a tool other small creators could use.
 
-SponsorFlow is now a product of [Otium](https://smi-consulting.vercel.app), my AI consulting studio for small businesses.
+SponsorFlow is now a product of [Otium](https://otium-studio.vercel.app), my AI consulting studio for small businesses.
 
 ## What it does
 
