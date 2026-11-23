@@ -46,7 +46,7 @@ export function salesEmail({ first_name, publication, niche }: SalesFields) {
     subject: `sponsor research for ${publication}`,
     body: `Hi ${first_name || "there"},
 
-My name is Sofia Iuteri, and I'm the founder of The Experience Exchange, an independent outdoor adventure magazine based at Washington & Lee University. After securing advertisers like Walkabout Outfitter and Lex Running Shop, I saw firsthand how time-consuming it can be to find the right sponsors and contacts.
+My name is Sofia Iuteri, and I'm the founder of Otium, an AI consulting studio. When I started The Experience Exchange, an outdoor magazine at Washington & Lee, and brought in advertisers like Walkabout Outfitter and Lex Running Shop, I saw firsthand how time-consuming it can be to find the right sponsors and contacts.
 
 That experience led me to launch SponsorFlow, a service that helps independent creators identify potential sponsors and streamline their outreach.
 
@@ -56,7 +56,7 @@ We're currently offering 20 researched sponsor prospects for $29, including bran
 
 Best,
 Sofia Iuteri
-Founder, SponsorFlow
+SponsorFlow, an Otium product
 https://sponsorflowhq.com`,
   };
 }

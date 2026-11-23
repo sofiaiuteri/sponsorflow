@@ -8,7 +8,7 @@ export default function PrivacyPage() {
     <LegalPage
       title="Privacy Policy"
       updated="October 7, 2026"
-      intro="This policy explains what information SponsorFlow collects, why, and the choices you have. SponsorFlow is a project of The Experience Exchange, operated by Sofia Iuteri. Contact: sofia@sponsorflowhq.com."
+      intro="This policy explains what information SponsorFlow collects, why, and the choices you have. SponsorFlow is a product of Otium, operated by Sofia Iuteri. Contact: sofia@sponsorflowhq.com."
       sections={[
         {
           heading: "What we collect",

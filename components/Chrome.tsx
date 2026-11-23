@@ -41,8 +41,8 @@ export function SiteFooter() {
           <Logo />
           <span>
             Sponsorship research for small media, by{" "}
-            <a href="https://theexperienceexchange.vercel.app" target="_blank" rel="noopener noreferrer" className="underline decoration-line-strong underline-offset-4 hover:text-ink">
-              The Experience Exchange
+            <a href="https://smi-consulting.vercel.app" target="_blank" rel="noopener noreferrer" className="underline decoration-line-strong underline-offset-4 hover:text-ink">
+              Otium
             </a>
             .
           </span>

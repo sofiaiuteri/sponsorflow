@@ -8,7 +8,7 @@ export default function TermsPage() {
     <LegalPage
       title="Terms of Service"
       updated="October 7, 2026"
-      intro="These terms explain what you get when you use SponsorFlow and what we ask of you. SponsorFlow is a project of The Experience Exchange, operated by Sofia Iuteri. By ordering, you agree to these terms. Questions? Email sofia@sponsorflowhq.com."
+      intro="These terms explain what you get when you use SponsorFlow and what we ask of you. SponsorFlow is a product of Otium, operated by Sofia Iuteri. By ordering, you agree to these terms. Questions? Email sofia@sponsorflowhq.com."
       sections={[
         {
           heading: "What SponsorFlow does",
